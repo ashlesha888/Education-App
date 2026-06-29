@@ -233,3 +233,55 @@ export const logout = async (req, res)=>{
     });
   }
 };
+
+export const forgotPassword = async (req, res) => {
+  try {
+    const {email} = req.body;
+    if (!email){
+      return res.status(400).json({
+        success: false,
+        message: "Email is required",
+      });
+    }
+    const user = await User.findOne({ email });
+    if(!user){
+      return res.status(400).json({
+        success: false,
+        message: "No account found with this email",
+      });
+    }
+    let generatedOtp = otpGenerator.generate(6, {
+      upperCaseAlphabets: false,
+      lowerCaseAlphabets: false,
+      specialChars: false,
+    });
+    let result = await OTP.findOne({ otp: generatedOtp });
+
+    while (result) {
+      generatedOtp = otpGenerator.generate(6, {
+        upperCaseAlphabets: false,
+        lowerCaseAlphabets: false,
+        specialChars: false,
+
+      });
+      
+      result = await OTP.findOne({ otp: generatedOtp });
+    }
+    await OTP.create({
+      email,
+      otp: generatedOtp,
+    });
+    return res.status(200).json({
+      success: true,
+      message: "OTP sent successfully",
+    });
+    
+  } catch (error) {
+  console.error(error);
+
+  return res.status(500).json({
+    success: false,
+    message: "Failed to send OTP",
+  });
+}
+};
