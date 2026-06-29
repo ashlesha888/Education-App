@@ -208,8 +208,9 @@ export const login = async (req, res) => {
   }
 };
 
-export const logout = async (req, res)=>{
-  try {const options = {
+export const logout = async (req, res) => {
+  try {
+    const options = {
 
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -223,7 +224,7 @@ export const logout = async (req, res)=>{
         message: "Logged out successfully",
       });
 
-    
+
   } catch (error) {
     console.error(error);
 
@@ -236,15 +237,15 @@ export const logout = async (req, res)=>{
 
 export const forgotPassword = async (req, res) => {
   try {
-    const {email} = req.body;
-    if (!email){
+    const { email } = req.body;
+    if (!email) {
       return res.status(400).json({
         success: false,
         message: "Email is required",
       });
     }
     const user = await User.findOne({ email });
-    if(!user){
+    if (!user) {
       return res.status(400).json({
         success: false,
         message: "No account found with this email",
@@ -264,7 +265,7 @@ export const forgotPassword = async (req, res) => {
         specialChars: false,
 
       });
-      
+
       result = await OTP.findOne({ otp: generatedOtp });
     }
     await OTP.create({
@@ -275,13 +276,147 @@ export const forgotPassword = async (req, res) => {
       success: true,
       message: "OTP sent successfully",
     });
-    
-  } catch (error) {
-  console.error(error);
 
-  return res.status(500).json({
-    success: false,
-    message: "Failed to send OTP",
-  });
-}
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to send OTP",
+    });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { email, otp, password, confirmPassword } = req.body;
+    if (!email || !otp || !password || !confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required",
+      });
+    }
+    if (password !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Passwords do not match",
+      });
+    }
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(password)) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Password must be at least 8 characters long and contain uppercase, lowercase, number, and special character.",
+      });
+    }
+    const recentOtp = await OTP.find({ email })
+      .sort({ createdAt: -1 })
+      .limit(1);
+
+    if (recentOtp.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "OTP has expired or does not exist",
+      });
+    }
+
+    if (otp.trim() !== recentOtp[0].otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP",
+      });
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await User.findOneAndUpdate(
+      { email },
+      { password: hashedPassword },
+      { new: true }
+    );
+
+    await OTP.deleteMany({ email });
+
+    return res.status(200).json({
+      success: true,
+      message: "Password reset successfully",
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to reset password",
+    });
+  }
+};
+
+
+
+export const changePassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword, confirmNewPassword } = req.body;
+
+    if (!oldPassword || !newPassword || !confirmNewPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required",
+      });
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "New passwords do not match",
+      });
+    }
+
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+    if (!passwordRegex.test(newPassword)) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Password must be at least 8 characters long and contain uppercase, lowercase, number, and special character.",
+      });
+    }
+
+    const userId = req.user.id;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        message: "Old password is incorrect",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await User.findByIdAndUpdate(userId, {
+      password: hashedPassword,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Password changed successfully",
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to change password",
+    });
+  }
 };
