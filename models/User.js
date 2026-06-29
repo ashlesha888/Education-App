@@ -1,57 +1,79 @@
 import mongoose from "mongoose";
 
-const userSchema = new mongoose.Schema({
+const { Schema } = mongoose;
+
+const userSchema = new Schema(
+  {
     firstName: {
-        type: String,
-        required: true,
-        trim: true,
+      type: String,
+      required: true,
+      trim: true,
+      minlength: 2,
+      maxlength: 50,
     },
+
     lastName: {
-        type: String,
-        required: true,
-        trim: true,
+      type: String,
+      required: true,
+      trim: true,
+      minlength: 2,
+      maxlength: 50,
     },
+
     email: {
-        type: String,
-        required: true,
-        trim: true,
-        unique: true,
-        lowercase: true,
+      type: String,
+      required: true,
+      trim: true,
+      lowercase: true,
+      unique: true,
+      match: [/^\S+@\S+\.\S+$/, "Please enter a valid email"],
     },
+
     password: {
-        type: String,
-        required: true,
-        trim: true,
+      type: String,
+      required: true,
+      select: false,
     },
+
     accountType: {
-        type: String,
-        required: true,
-        enum: ["Admin", "Student", "Instructor"],
+      type: String,
+      enum: ["Admin", "Student", "Instructor"],
+      default: "Student",
+      required: true,
     },
+
     additionalData: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Profile",
-        required: true,
+      type: Schema.Types.ObjectId,
+      ref: "Profile",
+      required: true,
     },
+
     courses: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Course",
-        },
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Course",
+      },
     ],
-    images: {
-        type: String,
-        required: true,
+
+    profileImage: {
+      type: String,
+      required: true,
     },
+
     courseProgress: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "CourseProgress",
-        }
+      {
+        type: Schema.Types.ObjectId,
+        ref: "CourseProgress",
+      },
     ],
+  },
+  {
+    timestamps: true,
+  }
+);
 
+userSchema.index({ email: 1 });
 
-}, { timestamps: true });
+const User = mongoose.model("User", userSchema);
 
-const User = mongoose.model('User', userSchema);
 export default User;

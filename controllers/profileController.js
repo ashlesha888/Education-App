@@ -1,102 +1,113 @@
-import Profile from "../models/profile.js";
-import User from "../models/user.js";
+import Profile from "../models/Profile.js";
+import User from "../models/User.js";
 
-// ==========================================
-// 1. UPDATE PROFILE DATA
-// ==========================================
 export const updateProfile = async (req, res) => {
-    try {
-        const { gender, dateOfBirth, about, contactNumber } = req.body;
-        const userId = req.user.id; // Extracted safely from the auth middleware token
+  try {
+    const { gender, dateOfBirth, about, contactNumber } = req.body;
+    const userId = req.user.id;
 
-        // Find the user to get their linked Profile ID
-        const userDetails = await User.findById(userId);
-        const profileId = userDetails.additionalData;
+    const user = await User.findById(userId);
 
-        // Find the linked profile document and update its fields
-        const profileDetails = await Profile.findById(profileId);
-
-        if (gender) profileDetails.gender = gender;
-        if (dateOfBirth) profileDetails.dateOfBirth = dateOfBirth;
-        if (about) profileDetails.about = about;
-        if (contactNumber) profileDetails.contactNumber = contactNumber;
-
-        // Save the updated profile to the database
-        await profileDetails.save();
-
-        // Fetch the fully updated user data to send back to the frontend
-        const updatedUserDetails = await User.findById(userId).populate("additionalData").exec();
-
-        return res.status(200).json({
-            success: true,
-            message: "Profile updated successfully",
-            updatedUserDetails,
-        });
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Unable to update profile",
-            error: error.message,
-        });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
     }
+
+    const profile = await Profile.findById(user.additionalData);
+
+    if (!profile) {
+      return res.status(404).json({
+        success: false,
+        message: "Profile not found",
+      });
+    }
+
+    if (gender !== undefined) profile.gender = gender;
+    if (dateOfBirth !== undefined) profile.dateOfBirth = dateOfBirth;
+    if (about !== undefined) profile.about = about;
+    if (contactNumber !== undefined) profile.contactNumber = contactNumber;
+
+    await profile.save();
+
+    const updatedUser = await User.findById(userId)
+      .populate("additionalData")
+      .lean();
+
+    return res.status(200).json({
+      success: true,
+      data: updatedUser,
+      message: "Profile updated successfully",
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update profile",
+    });
+  }
 };
 
-// ==========================================
-// 2. DELETE ACCOUNT (CRON / Cascade Delete)
-// ==========================================
 export const deleteAccount = async (req, res) => {
-    try {
-        const userId = req.user.id;
-        
-        const userDetails = await User.findById(userId);
-        if (!userDetails) {
-            return res.status(404).json({
-                success: false,
-                message: "User not found",
-            });
-        }
+  try {
+    const userId = req.user.id;
 
-        // Delete the associated Profile document first to prevent orphan data
-        await Profile.findByIdAndDelete(userDetails.additionalData);
+    const user = await User.findById(userId);
 
-        // TODO: (Optional) Unenroll the student from all courses if needed before deletion
-
-        // Delete the official User record
-        await User.findByIdAndDelete(userId);
-
-        // Clear the browser auth token cookie
-        return res.clearCookie("token").status(200).json({
-            success: true,
-            message: "Account and associated profile deleted successfully",
-        });
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Unable to delete account",
-            error: error.message,
-        });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
     }
+
+    await Profile.findByIdAndDelete(user.additionalData);
+
+    await User.findByIdAndDelete(userId);
+
+    return res
+      .clearCookie("token")
+      .status(200)
+      .json({
+        success: true,
+        message: "Account deleted successfully",
+      });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete account",
+    });
+  }
 };
 
-// ==========================================
-// 3. GET USER DETAILS
-// ==========================================
 export const getUserDetails = async (req, res) => {
-    try {
-        const userId = req.user.id;
-        
-        const userDetails = await User.findById(userId).populate("additionalData").exec();
-        
-        return res.status(200).json({
-            success: true,
-            message: "User data fetched successfully",
-            data: userDetails,
-        });
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Failed to retrieve user details",
-            error: error.message,
-        });
+  try {
+    const user = await User.findById(req.user.id)
+      .populate("additionalData")
+      .lean();
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
     }
+
+    return res.status(200).json({
+      success: true,
+      data: user,
+      message: "User details fetched successfully",
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch user details",
+    });
+  }
 };

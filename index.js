@@ -1,24 +1,47 @@
 import express from "express";
 import cookieParser from "cookie-parser";
+import dotenv from "dotenv";
+
 import connectDB from "./config/database.js";
+
 import authRoutes from "./routes/authRoutes.js";
 import courseRoutes from "./routes/courseRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
 import progressRoutes from "./routes/progressRoutes.js";
-import ratingRoutes from "./routes/ratingRoutes.js"; // 1. Import rating router
+import ratingRoutes from "./routes/ratingRoutes.js";
+
+dotenv.config();
 
 const app = express();
+
 connectDB();
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Mount All Backend Modules
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/course", courseRoutes);
 app.use("/api/v1/profile", profileRoutes);
 app.use("/api/v1/progress", progressRoutes);
-app.use("/api/v1/rating", ratingRoutes); // 2. Mount rating routes
+app.use("/api/v1/rating", ratingRoutes);
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Complete System online at port ${PORT}`));
+app.get("/", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Backend is running successfully",
+  });
+});
+
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "Route not found",
+  });
+});
+
+const PORT = process.env.PORT || 4000;
+
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});

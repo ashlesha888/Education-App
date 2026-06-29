@@ -1,19 +1,29 @@
 import mongoose from "mongoose";
 
-const SectionSchema = new mongoose.Schema({
+const sectionSchema = new mongoose.Schema(
+  {
     sectionName: {
-        type: String,
-        required: true, 
-        trim: true,
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 100,
     },
-    subSection: [ 
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            required: true, 
-            ref: "Subsection", 
-        }
-    ]
-}, { timestamps: true });
 
-const Section = mongoose.model('Section', SectionSchema);
+    subSections: {
+      type: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Subsection",
+        },
+      ],
+      default: [],
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+const Section = mongoose.model("Section", sectionSchema);
+
 export default Section;

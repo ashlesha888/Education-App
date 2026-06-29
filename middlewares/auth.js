@@ -1,88 +1,62 @@
 import jwt from "jsonwebtoken";
 
-// ==========================================
-// 1. CHIEF AUTH MIDDLEWARE (Is Logged In?)
-// ==========================================
 export const auth = async (req, res, next) => {
+  try {
+    const token =
+      req.cookies?.token ||
+      req.body?.token ||
+      req.header("Authorization")?.replace("Bearer ", "");
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: "Token is missing, authorization denied",
+      });
+    }
+
     try {
-        const token = req.cookies?.token || 
-                      req.body?.token || 
-                      req.header("Authorization")?.replace("Bearer ", "");
-
-        if (!token) {
-            return res.status(401).json({
-                success: false,
-                message: "Token is missing, authorization denied",
-            });
-        }
-
-        try {
-            const decode = jwt.verify(token, process.env.JWT_SECRET);
-            req.user = decode;
-        } catch (err) {
-            return res.status(401).json({
-                success: false,
-                message: "Token is invalid or expired",
-            });
-        }
-
-        next();
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      req.user = decoded;
     } catch (error) {
-        return res.status(401).json({
-            success: false,
-            message: "Something went wrong while validating the token",
+      return res.status(401).json({
+        success: false,
+        message: "Token is invalid or expired",
+      });
+    }
+
+    next();
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong while validating the token",
+    });
+  }
+};
+
+const authorize = (role) => {
+  return (req, res, next) => {
+    try {
+      if (req.user.role !== role) {
+        return res.status(403).json({
+          success: false,
+          message: `This route is accessible only to ${role}s`,
         });
-    }
-};
+      }
 
-// ==========================================
-// 2. IS STUDENT? MIDDLEWARE
-// ==========================================
-export const isStudent = async (req, res, next) => {
-    try {
-        if (req.user.role !== "Student") {
-            return res.status(401).json({
-                success: false,
-                message: "This is a protected route for Students only",
-            });
-        }
-        next();
+      next();
     } catch (error) {
-        return res.status(500).json({ success: false, message: "User role cannot be verified" });
+      console.error(error);
+
+      return res.status(500).json({
+        success: false,
+        message: "Something went wrong while verifying user role",
+      });
     }
+  };
 };
 
-// ==========================================
-// 3. IS INSTRUCTOR? MIDDLEWARE
-// ==========================================
-export const isInstructor = async (req, res, next) => {
-    try {
-        if (req.user.role !== "Instructor") {
-            return res.status(401).json({
-                success: false,
-                message: "This is a protected route for Instructors only",
-            });
-        }
-        next();
-    } catch (error) {
-        return res.status(500).json({ success: false, message: "User role cannot be verified" });
-    }
-};
-
-// ==========================================
-// 4. IS ADMIN? MIDDLEWARE
-// ==========================================
-export const isAdmin = async (req, res, next) => {
-    try {
-        if (req.user.role !== "Admin") {
-            return res.status(401).json({
-                success: false,
-                message: "This is a protected route for Admin only",
-            });
-        }
-        next();
-    } catch (error) {
-        return res.status(500).json({ success: false, message: "User role cannot be verified" });
-    }
-};
-
+export const isStudent = authorize("Student");
+export const isInstructor = authorize("Instructor");
+export const isAdmin = authorize("Admin");

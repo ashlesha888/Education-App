@@ -1,24 +1,36 @@
 import mongoose from "mongoose";
 
-const SubsectionSchema = new mongoose.Schema({
+const subsectionSchema = new mongoose.Schema(
+  {
     title: {
-        type: String,
-        required: true, 
-        trim: true,
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 100,
     },
-    timeDuration: {
-        type: String, 
-        required: true,
-    },
-    description: {
-        type: String,
-        trim: true,
-    },
-    videoUrl: {
-        type: String,
-        required: true, 
-    },
-}, { timestamps: true }); 
 
-const Subsection = mongoose.model('Subsection', SubsectionSchema);
+    timeDuration: {
+      type: String,
+      required: true,
+    },
+
+    description: {
+      type: String,
+      trim: true,
+      maxlength: 1000,
+    },
+
+    videoUrl: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+const Subsection = mongoose.model("Subsection", subsectionSchema);
+
 export default Subsection;
