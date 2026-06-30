@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 
 import { uploadToCloudinary } from "../utils/uploadToCloudinary.js";
 import Course from "../models/Course.js";
@@ -133,6 +134,75 @@ export const updateCourseThumbnail = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Thumbnail upload failed",
+    });
+  }
+};
+
+
+export const getCourseById = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+
+    // Check if Course ID is provided
+    if (!courseId) {
+      return res.status(400).json({
+        success: false,
+        message: "Course ID is required",
+      });
+    }
+
+    // Validate MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(courseId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Course ID",
+      });
+    }
+
+    const course = await Course.findById(courseId)
+      .populate({
+        path: "instructor",
+        select: "firstName lastName email profileImage",
+      })
+      .populate({
+        path: "courseContent",
+        select: "sectionName subSections",
+        populate: {
+          path: "subSections",
+          select: "title description videoUrl timeDuration",
+        },
+      })
+      .populate({
+        path: "ratingAndReviews",
+        populate: {
+          path: "user",
+          select: "firstName lastName profileImage",
+        },
+      })
+      .populate({
+        path: "tag",
+        select: "name description",
+      })
+      .lean();
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: course,
+      message: "Course fetched successfully",
+    });
+  } catch (error) {
+    console.error("Error fetching course:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch course",
     });
   }
 };
