@@ -1,3 +1,5 @@
+
+import { uploadToCloudinary } from "../utils/uploadToCloudinary.js";
 import Profile from "../models/Profile.js";
 import User from "../models/User.js";
 
@@ -108,6 +110,80 @@ export const getUserDetails = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to fetch user details",
+    });
+  }
+};
+
+
+export const updateProfilePicture = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "Image file is required",
+      });
+    }
+
+    const uploadResult = await uploadToCloudinary(
+      req.file.buffer,
+      "profile_pictures"
+    );
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { profileImage: uploadResult.secure_url },
+      { new: true }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile picture updated successfully",
+      data: updatedUser,
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Image upload failed",
+    });
+  }
+};
+
+
+
+export const getPublicInstructorProfile = async (req, res) => {
+  try {
+    const { instructorId } = req.body;
+
+    const instructor = await User.findById(instructorId)
+      .select("firstName lastName profileImage additionalData courses accountType")
+      .populate("additionalData")
+      .populate("courses");
+
+    if (!instructor) {
+      return res.status(404).json({
+        success: false,
+        message: "Instructor not found",
+      });
+    }
+    if (instructor.accountType !== "Instructor") {
+      return res.status(400).json({
+        success: false,
+        message: "User is not an instructor",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: instructor,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Unable to fetch instructor profile",
     });
   }
 };

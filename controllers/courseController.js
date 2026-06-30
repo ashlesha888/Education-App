@@ -1,3 +1,5 @@
+
+import { uploadToCloudinary } from "../utils/uploadToCloudinary.js";
 import Course from "../models/Course.js";
 import User from "../models/User.js";
 
@@ -95,6 +97,42 @@ export const getAllCourses = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to fetch courses",
+    });
+  }
+};
+
+
+export const updateCourseThumbnail = async (req, res) => {
+  try {
+    const { courseId } = req.body;
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "Thumbnail image is required",
+      });
+    }
+
+    const uploadedImage = await uploadToCloudinary(
+      req.file.buffer,
+      "course_thumbnails"
+    );
+
+    const updatedCourse = await Course.findByIdAndUpdate(
+      courseId,
+      { thumbnail: uploadedImage.secure_url },
+      { new: true }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Course thumbnail updated successfully",
+      data: updatedCourse,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Thumbnail upload failed",
     });
   }
 };

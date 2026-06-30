@@ -13,4 +13,11 @@ router.post("/add-section", auth, isInstructor, createSection);
 
 router.post("/add-subsection", auth, isInstructor, createSubsection);
 
+router.put(
+  "/update-thumbnail",
+  auth,
+  isInstructor,
+  upload.single("image"),
+  updateCourseThumbnail
+);
 export default router;
