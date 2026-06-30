@@ -54,6 +54,12 @@ const courseSchema = new mongoose.Schema(
       min: 0,
     },
 
+    status: {
+      type: String,
+      enum: ["Draft", "Published"],
+      default: "Draft",
+    },
+
     thumbnail: {
       type: uploadedImage.secure_url,
       required: true,

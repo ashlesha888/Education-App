@@ -75,7 +75,9 @@ export const createCourse = async (req, res) => {
 export const getAllCourses = async (req, res) => {
   try {
     const allCourses = await Course.find(
-      {},
+      {
+        status: "Published",
+      },
       {
         courseName: 1,
         price: 1,
@@ -424,6 +426,73 @@ export const deleteCourse = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to delete course",
+    });
+  }
+};
+
+
+export const updateCourseStatus = async (req, res) => {
+  try {
+    const { courseId, status } = req.body;
+
+    // Validate required fields
+    if (!courseId || !status) {
+      return res.status(400).json({
+        success: false,
+        message: "Course ID and status are required",
+      });
+    }
+
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(courseId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Course ID",
+      });
+    }
+
+    // Validate status
+    if (!["Draft", "Published"].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Status must be either 'Draft' or 'Published'",
+      });
+    }
+
+    // Find course
+    const course = await Course.findById(courseId);
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found",
+      });
+    }
+
+    // Check ownership
+    if (course.instructor.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to update this course",
+      });
+    }
+
+    // Update status
+    course.status = status;
+
+    await course.save();
+
+    return res.status(200).json({
+      success: true,
+      data: course,
+      message: `Course ${status.toLowerCase()} successfully`,
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update course status",
     });
   }
 };
