@@ -559,3 +559,109 @@ export const getCoursesByInstructor = async (req, res) => {
     });
   }
 };
+
+export const searchCourses = async (req, res) => {
+  try {
+    const { query } = req.query;
+
+    if (!query) {
+      return res.status(400).json({
+        success: false,
+        message: "Search query is required",
+      });
+    }
+
+    const courses = await Course.find({
+      status: "Published",
+      $or: [
+        {
+          courseName: {
+            $regex: query,
+            $options: "i",
+          },
+        },
+        {
+          courseDescription: {
+            $regex: query,
+            $options: "i",
+          },
+        },
+        {
+          whatYouWillLearn: {
+            $regex: query,
+            $options: "i",
+          },
+        },
+      ],
+    })
+      .populate({
+        path: "instructor",
+        select: "firstName lastName profileImage",
+      })
+      .populate({
+        path: "tag",
+        select: "name",
+      });
+
+    return res.status(200).json({
+      success: true,
+      count: courses.length,
+      data: courses,
+      message: "Courses fetched successfully",
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to search courses",
+    });
+  }
+};
+
+export const filterCoursesByCategory = async (req, res) => {
+  try {
+    const { categoryId } = req.params;
+
+    if (!categoryId) {
+      return res.status(400).json({
+        success: false,
+        message: "Category ID is required",
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(categoryId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Category ID",
+      });
+    }
+
+    const courses = await Course.find({
+      tag: categoryId,
+      status: "Published",
+    })
+      .populate({
+        path: "instructor",
+        select: "firstName lastName profileImage",
+      })
+      .populate({
+        path: "tag",
+        select: "name description",
+      });
+
+    return res.status(200).json({
+      success: true,
+      count: courses.length,
+      data: courses,
+      message: "Courses fetched successfully",
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch courses",
+    });
+  }
+};
