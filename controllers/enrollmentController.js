@@ -295,3 +295,53 @@ export const checkEnrollmentStatus = async (req, res) => {
   }
 };
 
+export const getCourseStudents = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const instructorId = req.user.id;
+
+   
+    if (!mongoose.Types.ObjectId.isValid(courseId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Course ID",
+      });
+    }
+
+    const course = await Course.findById(courseId)
+      .populate({
+        path: "studentsEnrolled",
+        select: "firstName lastName email profileImage accountType",
+      });
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found",
+      });
+    }
+
+    if (course.instructor.toString() !== instructorId) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to view enrolled students",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      totalStudents: course.studentsEnrolled.length,
+      data: course.studentsEnrolled,
+      message: "Students fetched successfully",
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch enrolled students",
+    });
+  }
+};
+
