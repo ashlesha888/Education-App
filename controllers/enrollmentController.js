@@ -153,3 +153,46 @@ export const removeEnrollment = async (req, res) => {
   }
 };
 
+
+
+export const getEnrolledCourses = async (req, res) => {
+  try {
+    const studentId = req.user.id;
+
+    const student = await User.findById(studentId)
+      .populate({
+        path: "courses",
+        populate: [
+          {
+            path: "instructor",
+            select: "firstName lastName email profileImage",
+          },
+          {
+            path: "tag",
+            select: "name",
+          },
+        ],
+      });
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: student.courses,
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch enrolled courses",
+    });
+  }
+};
+
