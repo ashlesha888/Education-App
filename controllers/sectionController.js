@@ -328,3 +328,81 @@ export const deleteSection = async (req, res) => {
   }
 };
 
+
+export const deleteSubsection = async (req, res) => {
+  try {
+    const { courseId, sectionId, subsectionId } = req.body;
+
+    if (!courseId || !sectionId || !subsectionId) {
+      return res.status(400).json({
+        success: false,
+        message: "All IDs are required",
+      });
+    }
+
+    if (
+      !mongoose.Types.ObjectId.isValid(courseId) ||
+      !mongoose.Types.ObjectId.isValid(sectionId) ||
+      !mongoose.Types.ObjectId.isValid(subsectionId)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid IDs",
+      });
+    }
+
+    const course = await Course.findById(courseId);
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found",
+      });
+    }
+
+    if (course.instructor.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized",
+      });
+    }
+
+    const section = await Section.findById(sectionId);
+
+    if (!section) {
+      return res.status(404).json({
+        success: false,
+        message: "Section not found",
+      });
+    }
+
+    await Section.findByIdAndUpdate(sectionId, {
+      $pull: {
+        subSections: subsectionId,
+      },
+    });
+
+    const deletedSubsection = await Subsection.findByIdAndDelete(subsectionId);
+
+    if (!deletedSubsection) {
+      return res.status(404).json({
+        success: false,
+        message: "Subsection not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Subsection deleted successfully",
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete subsection",
+    });
+  }
+};
+
+
