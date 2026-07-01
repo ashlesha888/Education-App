@@ -9,6 +9,8 @@ import courseRoutes from "./routes/courseRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
 import progressRoutes from "./routes/progressRoutes.js";
 import ratingRoutes from "./routes/ratingRoutes.js";
+import sectionRoutes from "./routes/sectionRoutes.js";
+import enrollmentRoutes from "./routes/enrollmentRoutes.js";
 
 dotenv.config();
 
@@ -25,6 +27,8 @@ app.use("/api/v1/course", courseRoutes);
 app.use("/api/v1/profile", profileRoutes);
 app.use("/api/v1/progress", progressRoutes);
 app.use("/api/v1/rating", ratingRoutes);
+app.use("/api/v1/section", sectionRoutes);
+app.use("/api/v1/enrollment", enrollmentRoutes);
 
 app.get("/", (req, res) => {
   res.status(200).json({
