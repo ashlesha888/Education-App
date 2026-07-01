@@ -1,7 +1,14 @@
+
 import mongoose from "mongoose";
 
 const courseProgressSchema = new mongoose.Schema(
   {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+
     courseId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Course",
@@ -17,10 +24,32 @@ const courseProgressSchema = new mongoose.Schema(
       ],
       default: [],
     },
+
+    lastWatchedVideo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Subsection",
+      default: null,
+    },
+
+    isCompleted: {
+      type: Boolean,
+      default: false,
+    },
+
+    completedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
   }
+);
+
+// One progress document per student per course
+courseProgressSchema.index(
+  { user: 1, courseId: 1 },
+  { unique: true }
 );
 
 const CourseProgress = mongoose.model(
@@ -29,3 +58,4 @@ const CourseProgress = mongoose.model(
 );
 
 export default CourseProgress;
+
