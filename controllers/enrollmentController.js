@@ -87,3 +87,69 @@ export const enrollStudent = async (req, res) => {
   }
 };
 
+export const removeEnrollment = async (req, res) => {
+  try {
+    const { courseId } = req.body;
+    const studentId = req.user.id;
+
+    if (!courseId) {
+      return res.status(400).json({
+        success: false,
+        message: "Course ID is required",
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(courseId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Course ID",
+      });
+    }
+
+    const course = await Course.findById(courseId);
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found",
+      });
+    }
+
+    const enrolled = course.studentsEnrolled.some(
+      (id) => id.toString() === studentId
+    );
+
+    if (!enrolled) {
+      return res.status(400).json({
+        success: false,
+        message: "Student is not enrolled in this course",
+      });
+    }
+
+    await Course.findByIdAndUpdate(courseId, {
+      $pull: {
+        studentsEnrolled: studentId,
+      },
+    });
+
+    await User.findByIdAndUpdate(studentId, {
+      $pull: {
+        courses: courseId,
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Enrollment removed successfully",
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to remove enrollment",
+    });
+  }
+};
+
