@@ -16,6 +16,7 @@ import upload from "../middlewares/multer.js";
 import {
   createSection,
   createSubsection,
+  updateSection,
 } from "../controllers/sectionController.js";
 import { auth, isInstructor } from "../middlewares/auth.js";
 
@@ -47,7 +48,7 @@ router.put(
 // Sections
 
 router.post("/add-section", auth, isInstructor, createSection);
-
+router.put("/update-section", auth, isInstructor, updateSection);
 router.post("/add-subsection", auth, isInstructor, createSubsection);
 
 // Course Queries
