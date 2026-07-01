@@ -20,6 +20,7 @@ router.put("/update-course", auth, isInstructor, updateCourse);
 router.delete("/delete-course", auth, isInstructor, deleteCourse);
 router.put("/update-course-status", auth, isInstructor, updateCourseStatus);
 router.get("/:courseId", getCourseById);
+router.get("/instructor/:instructorId", getCoursesByInstructor);
 
 
 
