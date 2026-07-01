@@ -162,6 +162,87 @@ export const updateSection = async (req, res) => {
   }
 };
 
+export const updateSubsection = async (req, res) => {
+  try {
+    const {
+      courseId,
+      sectionId,
+      subsectionId,
+      title,
+      description,
+      videoUrl,
+      timeDuration,
+    } = req.body;
+
+    if (!courseId || !sectionId || !subsectionId) {
+      return res.status(400).json({
+        success: false,
+        message: "courseId, sectionId and subsectionId are required",
+      });
+    }
+
+    if (
+      !mongoose.Types.ObjectId.isValid(courseId) ||
+      !mongoose.Types.ObjectId.isValid(sectionId) ||
+      !mongoose.Types.ObjectId.isValid(subsectionId)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid IDs",
+      });
+    }
+
+    const course = await Course.findById(courseId);
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found",
+      });
+    }
+
+    if (course.instructor.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized",
+      });
+    }
+
+    const subsection = await Subsection.findById(subsectionId);
+
+    if (!subsection) {
+      return res.status(404).json({
+        success: false,
+        message: "Subsection not found",
+      });
+    }
+
+    const updatedSubsection = await Subsection.findByIdAndUpdate(
+      subsectionId,
+      {
+        title,
+        description,
+        videoUrl,
+        timeDuration,
+      },
+      { new: true }
+    );
+
+    return res.status(200).json({
+      success: true,
+      data: updatedSubsection,
+      message: "Subsection updated successfully",
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update subsection",
+    });
+  }
+};
+
 export const deleteSection = async (req, res) => {
   try {
     const { courseId, sectionId } = req.body;
