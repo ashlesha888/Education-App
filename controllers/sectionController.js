@@ -467,7 +467,6 @@ export const reorderSubsections = async (req, res) => {
   try {
     const { sectionId, orderedSubsectionIds } = req.body;
 
-    // 1. Validate input
     if (!sectionId || !orderedSubsectionIds) {
       return res.status(400).json({
         success: false,
@@ -475,7 +474,7 @@ export const reorderSubsections = async (req, res) => {
       });
     }
 
-    // 2. Validate ObjectId
+ 
     if (!mongoose.Types.ObjectId.isValid(sectionId)) {
       return res.status(400).json({
         success: false,
@@ -483,7 +482,7 @@ export const reorderSubsections = async (req, res) => {
       });
     }
 
-    // 3. Get section
+    
     const section = await Section.findById(sectionId);
 
     if (!section) {
@@ -493,7 +492,7 @@ export const reorderSubsections = async (req, res) => {
       });
     }
 
-    // 4. Validate order
+  
     const valid =
       orderedSubsectionIds.length === section.subSections.length &&
       orderedSubsectionIds.every((id) =>
@@ -507,7 +506,6 @@ export const reorderSubsections = async (req, res) => {
       });
     }
 
-    // 5. Update order
     section.subSections = orderedSubsectionIds;
 
     await section.save();

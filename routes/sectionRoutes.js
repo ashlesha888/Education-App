@@ -6,6 +6,8 @@ import {
   createSubsection,
   updateSubsection,
   deleteSubsection,
+  reorderSections,
+  reorderSubsections,
 } from "../controllers/sectionController.js";
 
 import { auth, isInstructor } from "../middlewares/auth.js";
@@ -36,6 +38,13 @@ router.delete(
   deleteSection
 );
 
+router.put(
+  "/reorder-sections",
+  auth,
+  isInstructor,
+  reorderSections
+);
+
 // Subsection Routes
 
 router.post(
@@ -59,5 +68,13 @@ router.delete(
   isInstructor,
   deleteSubsection
 );
+
+
+router.put(
+  "/reorder-subsections",
+  auth,
+  isInstructor,
+  reorderSubsections
+); 
 
 export default router;
