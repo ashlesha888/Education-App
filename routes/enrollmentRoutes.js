@@ -26,5 +26,5 @@ router.get("/status/:courseId", auth, checkEnrollmentStatus);
 
 router.get("/course-students/:courseId", auth, getCourseStudents);
 
-
+router.get("/count/:courseId",getEnrollmentCount);
 export default router;

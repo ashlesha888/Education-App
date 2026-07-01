@@ -345,3 +345,43 @@ export const getCourseStudents = async (req, res) => {
   }
 };
 
+export const getEnrollmentCount = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(courseId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Course ID",
+      });
+    }
+
+    const course = await Course.findById(courseId).select(
+      "courseName studentsEnrolled"
+    );
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      courseId: course._id,
+      courseName: course.courseName,
+      enrollmentCount: course.studentsEnrolled.length,
+      message: "Enrollment count fetched successfully",
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch enrollment count",
+    });
+  }
+};
+
