@@ -463,4 +463,68 @@ export const reorderSections = async (req, res) => {
   }
 };
 
+export const reorderSubsections = async (req, res) => {
+  try {
+    const { sectionId, orderedSubsectionIds } = req.body;
+
+    // 1. Validate input
+    if (!sectionId || !orderedSubsectionIds) {
+      return res.status(400).json({
+        success: false,
+        message: "sectionId and orderedSubsectionIds are required",
+      });
+    }
+
+    // 2. Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(sectionId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid sectionId",
+      });
+    }
+
+    // 3. Get section
+    const section = await Section.findById(sectionId);
+
+    if (!section) {
+      return res.status(404).json({
+        success: false,
+        message: "Section not found",
+      });
+    }
+
+    // 4. Validate order
+    const valid =
+      orderedSubsectionIds.length === section.subSections.length &&
+      orderedSubsectionIds.every((id) =>
+        section.subSections.map((s) => s.toString()).includes(id)
+      );
+
+    if (!valid) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid subsection order",
+      });
+    }
+
+    // 5. Update order
+    section.subSections = orderedSubsectionIds;
+
+    await section.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Subsections reordered successfully",
+      data: section,
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to reorder subsections",
+    });
+  }
+};
+
 
