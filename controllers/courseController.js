@@ -496,3 +496,66 @@ export const updateCourseStatus = async (req, res) => {
     });
   }
 };
+
+export const getCoursesByInstructor = async (req, res) => {
+  try {
+    const { instructorId } = req.params;
+
+    if (!instructorId) {
+      return res.status(400).json({
+        success: false,
+        message: "Instructor ID is required",
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(instructorId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Instructor ID",
+      });
+    }
+
+    const instructor = await User.findById(instructorId);
+
+    if (!instructor) {
+      return res.status(404).json({
+        success: false,
+        message: "Instructor not found",
+      });
+    }
+
+    if (instructor.accountType !== "Instructor") {
+      return res.status(400).json({
+        success: false,
+        message: "User is not an instructor",
+      });
+    }
+
+    const courses = await Course.find({
+      instructor: instructorId,
+      status: "Published",
+    })
+      .populate({
+        path: "instructor",
+        select: "firstName lastName profileImage",
+      })
+      .populate({
+        path: "tag",
+        select: "name",
+      });
+
+    return res.status(200).json({
+      success: true,
+      count: courses.length,
+      data: courses,
+      message: "Instructor courses fetched successfully",
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch instructor courses",
+    });
+  }
+};
