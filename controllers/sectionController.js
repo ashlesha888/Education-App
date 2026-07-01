@@ -111,7 +111,6 @@ export const createSubsection = async (req, res) => {
   }
 };
 
-
 export const updateSection = async (req, res) => {
   try {
     const { sectionId, sectionName } = req.body;
@@ -162,3 +161,89 @@ export const updateSection = async (req, res) => {
     });
   }
 };
+
+export const deleteSection = async (req, res) => {
+  try {
+    const { courseId, sectionId } = req.body;
+
+    if (!courseId || !sectionId) {
+      return res.status(400).json({
+        success: false,
+        message: "Course ID and Section ID are required",
+      });
+    }
+
+    if (
+      !mongoose.Types.ObjectId.isValid(courseId) ||
+      !mongoose.Types.ObjectId.isValid(sectionId)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Course ID or Section ID",
+      });
+    }
+
+    const course = await Course.findById(courseId);
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found",
+      });
+    }
+
+    if (course.instructor.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to delete this section",
+      });
+    }
+
+    const section = await Section.findById(sectionId);
+
+    if (!section) {
+      return res.status(404).json({
+        success: false,
+        message: "Section not found",
+      });
+    }
+
+    const isSectionInCourse = course.courseContent.includes(sectionId);
+
+    if (!isSectionInCourse) {
+      return res.status(400).json({
+        success: false,
+        message: "Section does not belong to this course",
+      });
+    }
+
+    await Course.findByIdAndUpdate(courseId, {
+      $pull: {
+        courseContent: sectionId,
+      },
+    });
+
+    if (section.subSections && section.subSections.length > 0) {
+      await Subsection.deleteMany({
+        _id: {
+          $in: section.subSections,
+        },
+      });
+    }
+
+    await Section.findByIdAndDelete(sectionId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Section deleted successfully",
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete section",
+    });
+  }
+};
+
