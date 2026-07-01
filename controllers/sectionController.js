@@ -328,7 +328,6 @@ export const deleteSection = async (req, res) => {
   }
 };
 
-
 export const deleteSubsection = async (req, res) => {
   try {
     const { courseId, sectionId, subsectionId } = req.body;
@@ -401,6 +400,65 @@ export const deleteSubsection = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to delete subsection",
+    });
+  }
+};
+
+export const reorderSections = async (req, res) => {
+  try {
+    const { courseId, orderedSectionIds } = req.body;
+
+    if (!courseId || !orderedSectionIds) {
+      return res.status(400).json({
+        success: false,
+        message: "courseId and orderedSectionIds are required",
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(courseId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid courseId",
+      });
+    }
+
+    const course = await Course.findById(courseId);
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found",
+      });
+    }
+
+    const valid =
+      orderedSectionIds.length === course.courseContent.length &&
+      orderedSectionIds.every((id) =>
+        course.courseContent.map((s) => s.toString()).includes(id)
+      );
+
+    if (!valid) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid section order",
+      });
+    }
+
+    course.courseContent = orderedSectionIds;
+
+    await course.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Sections reordered successfully",
+      data: course,
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to reorder sections",
     });
   }
 };
