@@ -15,10 +15,6 @@ import { auth } from "../middlewares/auth.js";
 
 const router = express.Router();
 
-// =======================
-// Course Progress
-// =======================
-
 // Mark a lecture/subsection as completed
 router.put(
   "/update-progress",
