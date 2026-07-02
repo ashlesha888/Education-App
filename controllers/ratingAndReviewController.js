@@ -1,17 +1,15 @@
 
-import RatingAndReview from "../models/ratingAndReviewModel.js";
+import RatingAndReview from "../models/ratingAndReview.js";
 import Course from "../models/courseModel.js";
 import { validateCourse } from "../utils/progressHelper.js";
 import {
     checkExistingReview,
     checkMinimumProgressForReview,
     updateCourseAverageRating,
+    updateCourseRatingStats,
 } from "../utils/ratingHelper.js";
-
-import {
-    checkExistingReview,
-    checkMinimumProgressForReview,
-} from "../utils/ratingHelper.js";
+import AppError from "../utils/AppError.js";
+import mongoose from "mongoose";
 
 export const createRating = async (req, res) => {
     try {
@@ -118,7 +116,6 @@ export const createRating = async (req, res) => {
     }
 };
 
-
 export const getAverageRating = async (req, res) => {
     try {
         const { courseId } = req.params;
@@ -141,20 +138,16 @@ export const getAverageRating = async (req, res) => {
     }
 };
 
-
-import RatingAndReview from "../models/ratingAndReviewModel.js";
-import { validateCourse } from "../utils/progressHelper.js";
-
 export const getAllReviewsForCourse = async (req, res) => {
     try {
         const { courseId } = req.params;
 
-        // ==========================
+
         // Pagination
-        // ==========================
-        // ==========================
+
+
         // Sorting
-        // ==========================
+
 
         const sort = req.query.sort || "latest";
 
@@ -185,14 +178,14 @@ export const getAllReviewsForCourse = async (req, res) => {
 
         const skip = (page - 1) * limit;
 
-        // ==========================
+
         // Validate Course
-        // ==========================
+
 
         await validateCourse(courseId);
-        // ==========================
+
         // Rating Filter
-        // ==========================
+
 
         const rating = Number(req.query.rating);
 
@@ -203,9 +196,9 @@ export const getAllReviewsForCourse = async (req, res) => {
         if (rating >= 1 && rating <= 5) {
             filter.rating = rating;
         }
-        // ==========================
+
         // Fetch Reviews
-        // ==========================
+
 
         const reviews = await RatingAndReview.find(filter)
             .populate({
@@ -215,9 +208,9 @@ export const getAllReviewsForCourse = async (req, res) => {
             .skip(skip)
             .limit(limit);
 
-        // ==========================
+
         // Total Reviews
-        // ==========================
+
 
         const totalReviews =
             await RatingAndReview.countDocuments(filter);
@@ -226,9 +219,9 @@ export const getAllReviewsForCourse = async (req, res) => {
             totalReviews / limit
         );
 
-        // ==========================
+
         // Response
-        // ==========================
+
 
         return res.status(200).json({
             success: true,
@@ -259,5 +252,87 @@ export const getAllReviewsForCourse = async (req, res) => {
     }
 };
 
+export const deleteReview = async (req, res) => {
+  try {
+    const { reviewId } = req.params;
+    const studentId = req.user.id;
 
+    // Validate Review ID
+
+    if (!mongoose.Types.ObjectId.isValid(reviewId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid review ID",
+      });
+    }
+
+    // Find Review
+
+    const review = await RatingAndReview.findById(
+      reviewId
+    );
+
+    if (!review) {
+      throw new AppError(
+        "Review not found",
+        404
+      );
+    }
+
+    // Authorization
+
+    if (
+      review.user.toString() !== studentId
+    ) {
+      throw new AppError(
+        "You can delete only your own review",
+        403
+      );
+    }
+
+    // Remove Review From Course
+
+    await Course.findByIdAndUpdate(
+      review.course,
+      {
+        $pull: {
+          ratingAndReviews: review._id,
+        },
+      }
+    );
+
+    // Delete Review
+
+    await review.deleteOne();
+
+    // Update Rating Statistics
+
+    const stats =
+      await updateCourseRatingStats(
+        review.course
+      );
+
+    // Success Response
+
+    return res.status(200).json({
+      success: true,
+      message:
+        "Review deleted successfully",
+
+      ratingStatistics: stats,
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    return res.status(
+      error.statusCode || 500
+    ).json({
+      success: false,
+      message:
+        error.message ||
+        "Internal Server Error",
+    });
+  }
+};
 

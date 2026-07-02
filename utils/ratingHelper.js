@@ -13,9 +13,7 @@ import {
   MINIMUM_PROGRESS_FOR_REVIEW,
 } from "../config/constants.js";
 
-// ======================================
 // Check Existing Review
-// ======================================
 
 export const checkExistingReview = async (
   studentId,
@@ -36,9 +34,7 @@ export const checkExistingReview = async (
   return true;
 };
 
-// ======================================
 // Check Minimum Progress Before Review
-// ======================================
 
 export const checkMinimumProgressForReview = async (
   studentId,
@@ -81,9 +77,7 @@ export const checkMinimumProgressForReview = async (
 
 
 
-// ======================================
 // Update Course Average Rating
-// ======================================
 
 export const updateCourseAverageRating = async (
   courseId
@@ -114,5 +108,51 @@ export const updateCourseAverageRating = async (
   });
 
   return averageRating;
+};
+
+
+// Update Course Rating Statistics
+
+export const updateCourseRatingStats = async (
+  courseId
+) => {
+  const result = await RatingAndReview.aggregate([
+    {
+      $match: {
+        course: courseId,
+      },
+    },
+    {
+      $group: {
+        _id: "$course",
+        averageRating: {
+          $avg: "$rating",
+        },
+        totalRatings: {
+          $sum: 1,
+        },
+      },
+    },
+  ]);
+
+  const averageRating =
+    result.length > 0
+      ? Number(result[0].averageRating.toFixed(2))
+      : 0;
+
+  const totalRatings =
+    result.length > 0
+      ? result[0].totalRatings
+      : 0;
+
+  await Course.findByIdAndUpdate(courseId, {
+    averageRating,
+    totalRatings,
+  });
+
+  return {
+    averageRating,
+    totalRatings,
+  };
 };
 
