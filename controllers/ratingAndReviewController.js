@@ -336,3 +336,75 @@ export const deleteReview = async (req, res) => {
   }
 };
 
+
+export const updateReview = async (req, res) => {
+  try {
+    const { reviewId } = req.params;
+    const { rating, review } = req.body;
+    const studentId = req.user.id;
+
+    const existingReview = await RatingAndReview.findById(reviewId);
+
+    if (!existingReview) {
+      throw new AppError("Review not found", 404);
+    }
+
+    if (existingReview.user.toString() !== studentId) {
+      throw new AppError(
+        "You can update only your own review",
+        403
+      );
+    }
+
+    if (rating !== undefined) {
+      if (rating < 1 || rating > 5) {
+        return res.status(400).json({
+          success: false,
+          message: "Rating must be between 1 and 5",
+        });
+      }
+
+      existingReview.rating = rating;
+    }
+
+    if (review !== undefined) {
+      existingReview.review = review;
+    }
+
+    await existingReview.save();
+
+    await updateCourseRatingStats(
+      existingReview.course
+    );
+
+    const updatedReview =
+      await RatingAndReview.findById(
+        existingReview._id
+      )
+        .populate(
+          "user",
+          "firstName lastName profileImage"
+        )
+        .populate(
+          "course",
+          "courseName thumbnail"
+        );
+
+    return res.status(200).json({
+      success: true,
+      message: "Review updated successfully",
+      data: updatedReview,
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message:
+        error.message ||
+        "Internal Server Error",
+    });
+  }
+};
+
