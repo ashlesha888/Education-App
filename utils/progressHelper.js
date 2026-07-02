@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import User from "../models/User.js";
+import AppError from "./AppError.js";
 import Course from "../models/Course.js";
 import Subsection from "../models/Subsection.js";
 import CourseProgress from "../models/CourseProgress.js";
@@ -29,22 +30,38 @@ export const getTotalVideosInCourse = async (courseId) => {
 };
 
 
+// Calculates course completion percentage.
+ 
+export const calculateCourseCompletion = (
+  completedVideos,
+  totalVideos
+) => {
+  if (totalVideos === 0) {
+    return 0;
+  }
+
+  return Number(
+  ((completedVideos / totalVideos) * 100).toFixed(2)
+);
+};
+
+
 
 // Validate Student
 
 export const validateStudent = async (studentId) => {
   if (!mongoose.Types.ObjectId.isValid(studentId)) {
-    throw new Error("Invalid Student ID");
+    throw new AppError("Invalid Student ID", 400);
   }
 
   const student = await User.findById(studentId);
 
   if (!student) {
-    throw new Error("Student not found");
+    throw new AppError("Student not found", 404);
   }
 
   if (student.accountType !== "Student") {
-    throw new Error("Only students can perform this action");
+    throw new AppError("Only students can perform this action", 403);
   }
 
   return student;
@@ -54,7 +71,7 @@ export const validateStudent = async (studentId) => {
 
 export const validateCourse = async (courseId) => {
   if (!mongoose.Types.ObjectId.isValid(courseId)) {
-    throw new Error("Invalid Course ID");
+    throw new AppError("Invalid Course ID", 400)
   }
 
   const course = await Course.findById(courseId).populate({
@@ -65,7 +82,7 @@ export const validateCourse = async (courseId) => {
   });
 
   if (!course) {
-    throw new Error("Course not found");
+    throw new AppError("Course not found", 404)
   }
 
   return course;
@@ -79,7 +96,7 @@ export const validateEnrollment = (student, courseId) => {
   );
 
   if (!enrolled) {
-    throw new Error("Student is not enrolled in this course");
+    throw new AppError("Student is not enrolled in this course", 403)
   }
 
   return true;
@@ -89,13 +106,13 @@ export const validateEnrollment = (student, courseId) => {
 
 export const validateSubsection = async (subsectionId) => {
   if (!mongoose.Types.ObjectId.isValid(subsectionId)) {
-    throw new Error("Invalid Subsection ID");
+    throw new AppError("Invalid Subsection ID", 400);
   }
 
   const subsection = await Subsection.findById(subsectionId);
 
   if (!subsection) {
-    throw new Error("Subsection not found");
+    throw new AppError("Subsection not found", 404);
   }
 
   return subsection;
@@ -114,7 +131,7 @@ export const validateSubsectionBelongsToCourse = (
   );
 
   if (!belongs) {
-    throw new Error("Subsection does not belong to this course");
+    throw new AppError("Subsection does not belong to this course", 400);
   }
 
   return true;
@@ -139,9 +156,48 @@ export const findOrCreateProgress = async (
     });
 
     student.courseProgress.push(progress._id);
-    await student.save();
+    await student.save
   }
 
   return progress;
+};
+
+
+// Get Total Videos in a Course
+
+export const getTotalVideosInCourse = async (courseId) => {
+  const course = await Course.findById(courseId).populate({
+    path: "courseContent",
+    populate: {
+      path: "subSections",
+    },
+  });
+
+  if (!course) {
+    throw new AppError("Course not found", 404);
+  }
+
+  let totalVideos = 0;
+
+  course.courseContent.forEach((section) => {
+    totalVideos += section.subSections.length;
+  });
+
+  return totalVideos;
+};
+
+// Calculate Course Completion Percentage
+
+export const calculateCourseCompletion = (
+  completedVideos,
+  totalVideos
+) => {
+  if (totalVideos === 0) {
+    return 0;
+  }
+
+  return Number(
+  ((completedVideos / totalVideos) * 100).toFixed(2)
+);
 };
 

@@ -1,6 +1,6 @@
 import express from "express";
 
-import { updateCourseProgress, getCourseProgress, calculateCompletionPercentage, markCourseCompleted, resetCourseProgress, getLastWatchedLecture, getNextLecture, getLearningStatistics,} from "../controllers/progressController.js";
+import { updateCourseProgress, getCourseProgress, calculateCompletionPercentage, resetCourseProgress, getLastWatchedLecture, getNextLecture, getLearningStatistics,} from "../controllers/progressController.js";
 
 import { auth } from "../middlewares/auth.js";
 
@@ -14,9 +14,6 @@ router.get( "/course/:courseId", auth, getCourseProgress);
 
 // Get completion percentage
 router.get( "/completion/:courseId", auth, calculateCompletionPercentage);
-
-// Mark course completed
-router.put( "/complete/:courseId", auth, markCourseCompleted);
 
 // Reset course progress
 router.put( "/reset/:courseId", auth, resetCourseProgress);
