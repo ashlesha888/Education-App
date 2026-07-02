@@ -408,3 +408,46 @@ export const updateReview = async (req, res) => {
   }
 };
 
+
+export const getTopRatedCourses = async (req, res) => {
+  try {
+    const limit =
+      Number(req.query.limit) || 10;
+
+    const courses = await Course.find({
+      status: "Published",
+    })
+      .sort({
+        averageRating: -1,
+        totalRatings: -1,
+      })
+      .limit(limit)
+      .populate(
+        "instructor",
+        "firstName lastName profileImage"
+      )
+      .populate(
+        "tag",
+        "name"
+      );
+
+    return res.status(200).json({
+      success: true,
+      totalCourses: courses.length,
+      data: courses,
+      message:
+        "Top rated courses fetched successfully",
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message:
+        error.message ||
+        "Internal Server Error",
+    });
+  }
+};
+
