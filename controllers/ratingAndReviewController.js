@@ -1,109 +1,263 @@
-import mongoose from "mongoose";
 
-import RatingAndReview from "../models/RatingAndReview.js";
-import Course from "../models/Course.js";
+import RatingAndReview from "../models/ratingAndReviewModel.js";
+import Course from "../models/courseModel.js";
+import { validateCourse } from "../utils/progressHelper.js";
+import {
+    checkExistingReview,
+    checkMinimumProgressForReview,
+    updateCourseAverageRating,
+} from "../utils/ratingHelper.js";
+
+import {
+    checkExistingReview,
+    checkMinimumProgressForReview,
+} from "../utils/ratingHelper.js";
 
 export const createRating = async (req, res) => {
-  try {
-    const { rating, review, courseId } = req.body;
-    const userId = req.user.id;
+    try {
+        const { courseId, rating, review } = req.body;
+        const studentId = req.user.id;
 
-    if (!rating || !review || !courseId) {
-      return res.status(400).json({
-        success: false,
-        message: "Rating, review and course ID are required",
-      });
+        // Validate Request Body
+
+        if (!courseId || rating === undefined || !review) {
+            return res.status(400).json({
+                success: false,
+                message: "Course ID, rating and review are required",
+            });
+        }
+
+        if (rating < 1 || rating > 5) {
+            return res.status(400).json({
+                success: false,
+                message: "Rating must be between 1 and 5",
+            });
+        }
+
+        // Validate Student
+
+        const student = await validateStudent(studentId);
+
+        // Validate Course
+
+        const course = await validateCourse(courseId);
+
+        // Check Enrollment
+
+        validateEnrollment(student, courseId);
+
+        // Check Minimum Progress (20%)
+
+        await checkMinimumProgressForReview(
+            studentId,
+            courseId
+        );
+
+        // Prevent Duplicate Review
+
+        await checkExistingReview(
+            studentId,
+            courseId
+        );
+
+        // Create Review
+
+        const createdReview =
+            await RatingAndReview.create({
+                user: studentId,
+                course: courseId,
+                rating,
+                review,
+            });
+
+        // Update Course
+
+        course.ratingAndReviews.push(createdReview._id);
+
+        await course.save();
+
+        // Update average rating
+        await updateCourseAverageRating(courseId);
+
+        // Populate Created Review
+
+        const populatedReview =
+            await RatingAndReview.findById(
+                createdReview._id
+            )
+                .populate({
+                    path: "user",
+                    select:
+                        "firstName lastName profileImage",
+                })
+                .populate({
+                    path: "course",
+                    select:
+                        "courseName thumbnail averageRating",
+                });
+
+        // Success Response
+
+        return res.status(201).json({
+            success: true,
+            message: "Review created successfully",
+            data: populatedReview,
+        });
+
+    } catch (error) {
+        console.error(error);
+
+        return res.status(
+            error.statusCode || 500
+        ).json({
+            success: false,
+            message:
+                error.message ||
+                "Internal Server Error",
+        });
     }
-
-    const course = await Course.findOne({
-      _id: courseId,
-      studentsEnrolled: userId,
-    });
-
-    if (!course) {
-      return res.status(404).json({
-        success: false,
-        message: "Course not found or student is not enrolled",
-      });
-    }
-
-    const existingReview = await RatingAndReview.findOne({
-      user: userId,
-      course: courseId,
-    });
-
-    if (existingReview) {
-      return res.status(409).json({
-        success: false,
-        message: "You have already reviewed this course",
-      });
-    }
-
-    const newReview = await RatingAndReview.create({
-      user: userId,
-      rating,
-      review,
-      course: courseId,
-    });
-
-    await Course.findByIdAndUpdate(courseId, {
-      $push: {
-        ratingAndReviews: newReview._id,
-      },
-    });
-
-    return res.status(201).json({
-      success: true,
-      data: newReview,
-      message: "Rating and review added successfully",
-    });
-  } catch (error) {
-    console.error(error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Failed to create rating and review",
-    });
-  }
 };
+
 
 export const getAverageRating = async (req, res) => {
-  try {
-    const { courseId } = req.body;
+    try {
+        const { courseId } = req.params;
 
-    if (!courseId) {
-      return res.status(400).json({
-        success: false,
-        message: "Course ID is required",
-      });
+        const course = await validateCourse(courseId);
+
+        return res.status(200).json({
+            success: true,
+            averageRating: course.averageRating,
+            message: "Average rating fetched successfully",
+        });
+
+    } catch (error) {
+        console.error(error);
+
+        return res.status(error.statusCode || 500).json({
+            success: false,
+            message: error.message || "Internal Server Error",
+        });
     }
-
-    const result = await RatingAndReview.aggregate([
-      {
-        $match: {
-          course: new mongoose.Types.ObjectId(courseId),
-        },
-      },
-      {
-        $group: {
-          _id: "$course",
-          averageRating: {
-            $avg: "$rating",
-          },
-        },
-      },
-    ]);
-
-    return res.status(200).json({
-      success: true,
-      averageRating: result.length ? result[0].averageRating : 0,
-    });
-  } catch (error) {
-    console.error(error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Failed to fetch average rating",
-    });
-  }
 };
+
+
+import RatingAndReview from "../models/ratingAndReviewModel.js";
+import { validateCourse } from "../utils/progressHelper.js";
+
+export const getAllReviewsForCourse = async (req, res) => {
+    try {
+        const { courseId } = req.params;
+
+        // ==========================
+        // Pagination
+        // ==========================
+        // ==========================
+        // Sorting
+        // ==========================
+
+        const sort = req.query.sort || "latest";
+
+        let sortOption = {};
+
+        switch (sort) {
+            case "latest":
+                sortOption = { createdAt: -1 };
+                break;
+
+            case "oldest":
+                sortOption = { createdAt: 1 };
+                break;
+
+            case "highest":
+                sortOption = { rating: -1 };
+                break;
+
+            case "lowest":
+                sortOption = { rating: 1 };
+                break;
+
+            default:
+                sortOption = { createdAt: -1 };
+        }
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 10;
+
+        const skip = (page - 1) * limit;
+
+        // ==========================
+        // Validate Course
+        // ==========================
+
+        await validateCourse(courseId);
+        // ==========================
+        // Rating Filter
+        // ==========================
+
+        const rating = Number(req.query.rating);
+
+        const filter = {
+            course: courseId,
+        };
+
+        if (rating >= 1 && rating <= 5) {
+            filter.rating = rating;
+        }
+        // ==========================
+        // Fetch Reviews
+        // ==========================
+
+        const reviews = await RatingAndReview.find(filter)
+            .populate({
+                path: "user",
+                select: "firstName lastName profileImage",
+            }).sort(sortOption)
+            .skip(skip)
+            .limit(limit);
+
+        // ==========================
+        // Total Reviews
+        // ==========================
+
+        const totalReviews =
+            await RatingAndReview.countDocuments(filter);
+
+        const totalPages = Math.ceil(
+            totalReviews / limit
+        );
+
+        // ==========================
+        // Response
+        // ==========================
+
+        return res.status(200).json({
+            success: true,
+
+            pagination: {
+                currentPage: page,
+                totalPages,
+                totalReviews,
+                limit,
+                hasNextPage: page < totalPages,
+                hasPreviousPage: page > 1,
+            },
+
+            data: reviews,
+
+            message: "Reviews fetched successfully",
+        });
+
+    } catch (error) {
+        console.error(error);
+
+        return res.status(error.statusCode || 500).json({
+            success: false,
+            message:
+                error.message ||
+                "Internal Server Error",
+        });
+    }
+};
+
+
+

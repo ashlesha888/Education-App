@@ -1,0 +1,2 @@
+export const MINIMUM_PROGRESS_FOR_REVIEW = 20;
+

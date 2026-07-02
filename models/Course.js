@@ -48,6 +48,16 @@ const courseSchema = new mongoose.Schema(
       default: [],
     },
 
+    averageRating: {
+  type: Number,
+  default: 0,
+},
+
+totalRatings: {
+  type: Number,
+  default: 0,
+},
+
     price: {
       type: Number,
       required: true,
@@ -61,10 +71,10 @@ const courseSchema = new mongoose.Schema(
     },
 
     thumbnail: {
-      type: uploadedImage.secure_url,
-      required: true,
-      trim: true,
-    },
+  type: String,
+  required: true,
+  trim: true,
+},
 
     tag: {
       type: mongoose.Schema.Types.ObjectId,
@@ -86,7 +96,15 @@ const courseSchema = new mongoose.Schema(
   }
 );
 
-courseSchema.index({ instructor: 1 });
+courseSchema.index({ courseName: "text", courseDescription: "text" });
+
+courseSchema.index({ tag: 1 });
+
+courseSchema.index({ status: 1 });
+
+courseSchema.index({ averageRating: -1 });
+
+courseSchema.index({ price: 1 });
 
 const Course = mongoose.model("Course", courseSchema);
 
