@@ -1,20 +1,114 @@
 import {
-  getInstructorCourses,
-  calculateInstructorRevenue,
+    fetchInstructorCourses,
+    calculateCourseRevenue,
+    sortCourses,
+    formatCourseDashboardData,getInstructorDashboardData,
+  getRecentCourses,
+  getTopCourses,
 } from "../utils/instructorDashboardHelper.js";
 
-export const getInstructorDashboard = async (req, res) => {};
 
-export const getInstructorCourses = async (req, res) => {};
+export const getInstructorDashboard =
+  async (req, res) => {
+    try {
+      const instructorId = req.user.id;
+
+      const {
+        courses,
+        statistics,
+      } =
+        await getInstructorDashboardData(
+          instructorId
+        );
+
+const recentCourses =
+  getRecentCourses(courses);
+
+const topCourses =
+  getTopCourses(courses);
+
+      return res.status(200).json({
+        success: true,
+        message:
+          "Instructor dashboard fetched successfully",
+
+        data: {
+          ...statistics,
+
+          recentCourses,
+
+          topCourses,
+        },
+      });
+
+    } catch (error) {
+      console.error(error);
+
+      return res.status(
+        error.statusCode || 500
+      ).json({
+        success: false,
+        message:
+          error.message ||
+          "Internal Server Error",
+      });
+    }
+  };
+
+
+
+
+export const getInstructorCourses = async (req, res) => {
+  try {
+    const instructorId = req.user.id;
+
+    const sortBy = req.query.sortBy || "createdAt";
+    const order = req.query.order || "desc";
+
+    const courses = await fetchInstructorCourses(
+      instructorId
+    );
+
+    const sortedCourses = sortCourses(
+      courses,
+      sortBy,
+      order
+    );
+
+const data =
+  sortedCourses.map(
+    formatCourseDashboardData
+  );
+
+    return res.status(200).json({
+      success: true,
+      message:
+        "Instructor courses fetched successfully",
+      count: data.length,
+      data,
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message:
+        error.message ||
+        "Internal Server Error",
+    });
+  }
+};
+
 
 export const getCourseStatistics = async (req, res) => {};
 
-```javascript
+
 export const getStudentCount = async (req, res) => {
   try {
     const instructorId = req.user.id;
 
-    const courses = await getInstructorCourses(
+    const courses = await fetchInstructorCourses(
       instructorId
     );
 
@@ -53,15 +147,15 @@ export const getStudentCount = async (req, res) => {
     });
   }
 };
-```
 
 
-```javascript
+
+
 export const getRevenue = async (req, res) => {
   try {
     const instructorId = req.user.id;
 
-    const courses = await getInstructorCourses(
+    const courses = await fetchInstructorCourses(
       instructorId
     );
 
@@ -99,15 +193,15 @@ export const getRevenue = async (req, res) => {
     });
   }
 };
-```
 
 
-```javascript
+
+
 export const getAverageRatings = async (req, res) => {
   try {
     const instructorId = req.user.id;
 
-    const courses = await getInstructorCourses(
+    const courses = await fetchInstructorCourses(
       instructorId
     );
 
@@ -200,68 +294,44 @@ export const getAverageRatings = async (req, res) => {
     });
   }
 };
-```
 
 
-export const getDashboardSummary = async (req, res) => {};
 
-export const getRecentEnrollments = async (req, res) => {};
 
-export const getTopPerformingCourses = async (req, res) => {
+
+export const getDashboardSummary = async (
+  req,
+  res
+) => {
   try {
     const instructorId = req.user.id;
 
-    const limit = Math.max(
-      1,
-      Math.min(10, Number(req.query.limit) || 5)
-    );
+    const {
+      courses,
+      statistics,
+    } =
+      await getInstructorDashboardData(
+        instructorId
+      );
 
-    const courses = await getInstructorCourses(
-      instructorId
-    );
+    const topCourse =
+      getTopCourses(courses, 1)[0] || null;
 
-    const rankedCourses = courses
-      .map((course) => {
-        const students =
-          course.studentsEnrolled.length;
-
-        const revenue =
-          students * course.price;
-
-        return {
-          courseId: course._id,
-          courseName: course.courseName,
-          thumbnail: course.thumbnail,
-          students,
-          revenue,
-          averageRating:
-            course.averageRating,
-          totalRatings:
-            course.totalRatings,
-        };
-      })
-      .sort((a, b) => {
-        if (b.revenue !== a.revenue)
-          return b.revenue - a.revenue;
-
-        if (
-          b.students !== a.students
-        )
-          return b.students - a.students;
-
-        return (
-          b.averageRating -
-          a.averageRating
-        );
-      })
-      .slice(0, limit);
+    const recentCourse =
+      getRecentCourses(courses, 1)[0] || null;
 
     return res.status(200).json({
       success: true,
       message:
-        "Top performing courses fetched successfully",
+        "Dashboard summary fetched successfully",
 
-      data: rankedCourses,
+      data: {
+        ...statistics,
+
+        topCourse,
+
+        recentCourse,
+      },
     });
 
   } catch (error) {
@@ -277,6 +347,65 @@ export const getTopPerformingCourses = async (req, res) => {
     });
   }
 };
+
+
+
+
+
+export const getRecentEnrollments = async (req, res) => {};
+
+
+export const getTopPerformingCourses = async (req, res) => {
+  try {
+    const instructorId = req.user.id;
+
+    const limit = Math.max(
+      1,
+      Math.min(10, Number(req.query.limit) || 5)
+    );
+
+    const sortBy = req.query.sortBy || "revenue";
+
+    const order = req.query.order || "desc";
+
+    const courses = await fetchInstructorCourses(
+      instructorId
+    );
+
+    const sortedCourses = sortCourses(
+      courses,
+      sortBy,
+      order
+    ).slice(0, limit);
+
+const data =
+  sortedCourses.map(
+    formatCourseDashboardData
+  );
+
+    return res.status(200).json({
+      success: true,
+      message:
+        "Top performing courses fetched successfully",
+
+      count: data.length,
+
+      data,
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message:
+        error.message ||
+        "Internal Server Error",
+    });
+  }
+};
+
+
 
 export const getMonthlyRevenue = async (req, res) => {};
 
