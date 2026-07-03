@@ -1,261 +1,267 @@
-import {
-  MINIMUM_RATINGS_FOR_TOP_COURSE,
-} from "../config/constants.js";
-import RatingAndReview from "../models/ratingAndReview.js";
+
+import mongoose from "mongoose";
+
+import { MINIMUM_RATINGS_FOR_TOP_COURSE } from "../config/constants.js";
+
 import Course from "../models/courseModel.js";
+import RatingAndReview from "../models/ratingAndReview.js";
+
+import AppError from "../utils/AppError.js";
+
 import {
   validateStudent,
   validateCourse,
+  validateEnrollment,
 } from "../utils/progressHelper.js";
+
 import {
-    checkExistingReview,
-    checkMinimumProgressForReview,
-    updateCourseAverageRating,
-    updateCourseRatingStats,
-    getStudentReviewForCourse,
+  checkExistingReview,
+  checkMinimumProgressForReview,
+  updateCourseAverageRating,
+  updateCourseRatingStats,
+  getStudentReviewForCourse,
 } from "../utils/ratingHelper.js";
-import AppError from "../utils/AppError.js";
-import mongoose from "mongoose";
+
 
 export const createRating = async (req, res) => {
-    try {
-        const { courseId, rating, review } = req.body;
-        const studentId = req.user.id;
+  try {
+    const { courseId, rating, review } = req.body;
+    const studentId = req.user.id;
 
-        // Validate Request Body
+    // Validate Request Body
 
-        if (!courseId || rating === undefined || !review) {
-            return res.status(400).json({
-                success: false,
-                message: "Course ID, rating and review are required",
-            });
-        }
-
-        if (rating < 1 || rating > 5) {
-            return res.status(400).json({
-                success: false,
-                message: "Rating must be between 1 and 5",
-            });
-        }
-
-        // Validate Student
-
-        const student = await validateStudent(studentId);
-
-        // Validate Course
-
-        const course = await validateCourse(courseId);
-
-        // Check Enrollment
-
-        validateEnrollment(student, courseId);
-
-        // Check Minimum Progress (20%)
-
-        await checkMinimumProgressForReview(
-            studentId,
-            courseId
-        );
-
-        // Prevent Duplicate Review
-
-        await checkExistingReview(
-            studentId,
-            courseId
-        );
-
-        // Create Review
-
-        const createdReview =
-            await RatingAndReview.create({
-                user: studentId,
-                course: courseId,
-                rating,
-                review,
-            });
-
-        // Update Course
-
-        course.ratingAndReviews.push(createdReview._id);
-
-        await course.save();
-
-        // Update average rating
-        await updateCourseAverageRating(courseId);
-
-        // Populate Created Review
-
-        const populatedReview =
-            await RatingAndReview.findById(
-                createdReview._id
-            )
-                .populate({
-                    path: "user",
-                    select:
-                        "firstName lastName profileImage",
-                })
-                .populate({
-                    path: "course",
-                    select:
-                        "courseName thumbnail averageRating",
-                });
-
-        // Success Response
-
-        return res.status(201).json({
-            success: true,
-            message: "Review created successfully",
-            data: populatedReview,
-        });
-
-    } catch (error) {
-        console.error(error);
-
-        return res.status(
-            error.statusCode || 500
-        ).json({
-            success: false,
-            message:
-                error.message ||
-                "Internal Server Error",
-        });
+    if (!courseId || rating === undefined || !review) {
+      return res.status(400).json({
+        success: false,
+        message: "Course ID, rating and review are required",
+      });
     }
+
+    if (rating < 1 || rating > 5) {
+      return res.status(400).json({
+        success: false,
+        message: "Rating must be between 1 and 5",
+      });
+    }
+
+    // Validate Student
+
+    const student = await validateStudent(studentId);
+
+    // Validate Course
+
+    const course = await validateCourse(courseId);
+
+    // Check Enrollment
+
+    validateEnrollment(student, courseId);
+
+    // Check Minimum Progress (20%)
+
+    await checkMinimumProgressForReview(
+      studentId,
+      courseId
+    );
+
+    // Prevent Duplicate Review
+
+    await checkExistingReview(
+      studentId,
+      courseId
+    );
+
+    // Create Review
+
+    const createdReview =
+      await RatingAndReview.create({
+        user: studentId,
+        course: courseId,
+        rating,
+        review,
+      });
+
+    // Update Course
+
+    course.ratingAndReviews.push(createdReview._id);
+
+    await course.save();
+
+    // Update average rating
+    await updateCourseAverageRating(courseId);
+
+    // Populate Created Review
+
+    const populatedReview =
+      await RatingAndReview.findById(
+        createdReview._id
+      )
+        .populate({
+          path: "user",
+          select:
+            "firstName lastName profileImage",
+        })
+        .populate({
+          path: "course",
+          select:
+            "courseName thumbnail averageRating",
+        });
+
+    // Success Response
+
+    return res.status(201).json({
+      success: true,
+      message: "Review created successfully",
+      data: populatedReview,
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    return res.status(
+      error.statusCode || 500
+    ).json({
+      success: false,
+      message:
+        error.message ||
+        "Internal Server Error",
+    });
+  }
 };
 
 export const getAverageRating = async (req, res) => {
-    try {
-        const { courseId } = req.params;
+  try {
+    const { courseId } = req.params;
 
-        const course = await validateCourse(courseId);
+    const course = await validateCourse(courseId);
 
-        return res.status(200).json({
-            success: true,
-            averageRating: course.averageRating,
-            message: "Average rating fetched successfully",
-        });
+    return res.status(200).json({
+      success: true,
+      averageRating: course.averageRating,
+      message: "Average rating fetched successfully",
+    });
 
-    } catch (error) {
-        console.error(error);
+  } catch (error) {
+    console.error(error);
 
-        return res.status(error.statusCode || 500).json({
-            success: false,
-            message: error.message || "Internal Server Error",
-        });
-    }
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
+  }
 };
 
 export const getAllReviewsForCourse = async (req, res) => {
-    try {
-        const { courseId } = req.params;
+  try {
+    const { courseId } = req.params;
 
 
-        // Pagination
+    // Pagination
 
 
-        // Sorting
+    // Sorting
 
 
-        const sort = req.query.sort || "latest";
+    const sort = req.query.sort || "latest";
 
-        let sortOption = {};
+    let sortOption = {};
 
-        switch (sort) {
-            case "latest":
-                sortOption = { createdAt: -1 };
-                break;
+    switch (sort) {
+      case "latest":
+        sortOption = { createdAt: -1 };
+        break;
 
-            case "oldest":
-                sortOption = { createdAt: 1 };
-                break;
+      case "oldest":
+        sortOption = { createdAt: 1 };
+        break;
 
-            case "highest":
-                sortOption = { rating: -1 };
-                break;
+      case "highest":
+        sortOption = { rating: -1 };
+        break;
 
-            case "lowest":
-                sortOption = { rating: 1 };
-                break;
+      case "lowest":
+        sortOption = { rating: 1 };
+        break;
 
-            default:
-                sortOption = { createdAt: -1 };
-        }
-        const page = Number(req.query.page) || 1;
-        const limit = Number(req.query.limit) || 10;
-
-        const skip = (page - 1) * limit;
-
-
-        // Validate Course
-
-
-        await validateCourse(courseId);
-
-        // Rating Filter
-
-
-        const rating = Number(req.query.rating);
-
-        const filter = {
-            course: courseId,
-        };
-
-        if (rating >= 1 && rating <= 5) {
-            filter.rating = rating;
-        }
-
-        // Fetch Reviews
-
-
-        const reviews = await RatingAndReview.find(filter)
-            .populate({
-                path: "user",
-                select: "firstName lastName profileImage",
-            }).sort(sortOption)
-            .skip(skip)
-            .limit(limit);
-
-
-        // Total Reviews
-
-
-        const totalReviews =
-            await RatingAndReview.countDocuments(filter);
-
-        const totalPages = Math.ceil(
-            totalReviews / limit
-        );
-
-
-        // Response
-
-
-        return res.status(200).json({
-            success: true,
-
-            pagination: {
-                currentPage: page,
-                totalPages,
-                totalReviews,
-                limit,
-                hasNextPage: page < totalPages,
-                hasPreviousPage: page > 1,
-            },
-
-            data: reviews,
-
-            message: "Reviews fetched successfully",
-        });
-
-    } catch (error) {
-        console.error(error);
-
-        return res.status(error.statusCode || 500).json({
-            success: false,
-            message:
-                error.message ||
-                "Internal Server Error",
-        });
+      default:
+        sortOption = { createdAt: -1 };
     }
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+
+    const skip = (page - 1) * limit;
+
+
+    // Validate Course
+
+
+    await validateCourse(courseId);
+
+    // Rating Filter
+
+
+    const rating = Number(req.query.rating);
+
+    const filter = {
+      course: courseId,
+    };
+
+    if (rating >= 1 && rating <= 5) {
+      filter.rating = rating;
+    }
+
+    // Fetch Reviews
+
+
+    const reviews = await RatingAndReview.find(filter)
+      .populate({
+        path: "user",
+        select: "firstName lastName profileImage",
+      }).sort(sortOption)
+      .skip(skip)
+      .limit(limit);
+
+
+    // Total Reviews
+
+
+    const totalReviews =
+      await RatingAndReview.countDocuments(filter);
+
+    const totalPages = Math.ceil(
+      totalReviews / limit
+    );
+
+
+    // Response
+
+
+    return res.status(200).json({
+      success: true,
+
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalReviews,
+        limit,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      },
+
+      data: reviews,
+
+      message: "Reviews fetched successfully",
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message:
+        error.message ||
+        "Internal Server Error",
+    });
+  }
 };
 
 export const deleteReview = async (req, res) => {
@@ -420,15 +426,15 @@ export const getTopRatedCourses = async (req, res) => {
     const limit =
       Number(req.query.limit) || 10;
 
-   const courses = await Course.find({
-  status: "Published",
-  totalRatings: {
-    $gte: MINIMUM_RATINGS_FOR_TOP_COURSE,
-  },
-}).sort({
-        averageRating: -1,
-        totalRatings: -1,
-      })
+    const courses = await Course.find({
+      status: "Published",
+      totalRatings: {
+        $gte: MINIMUM_RATINGS_FOR_TOP_COURSE,
+      },
+    }).sort({
+      averageRating: -1,
+      totalRatings: -1,
+    })
       .limit(limit)
       .populate(
         "instructor",
@@ -519,55 +525,245 @@ export const getStudentReview = async (req, res) => {
   }
 };
 
-
-export const checkCanReview = async (req, res) => {
+export const checkStudentCanReview = async (req, res) => {
   try {
     const { courseId } = req.params;
-    const userId = req.user.id;
+    const studentId = req.user.id;
 
-    // Validate inputs
-    if (!courseId) {
-      return res.status(400).json({
-        success: false,
-        message: "Course ID is required",
-      });
-    }
+    // Validate Student
 
-    // Check enrollment using existing helper logic
-    const isEnrolled = await checkEnrollmentHelper(userId, courseId);
+    const student = await validateStudent(studentId);
 
-    if (!isEnrolled) {
+    // Validate Course
+
+    await validateCourse(courseId);
+
+    // Check Enrollment
+
+    validateEnrollment(student, courseId);
+
+    // Check Minimum Progress
+
+    const progress =
+      await checkMinimumProgressForReview(
+        studentId,
+        courseId
+      );
+
+    // Check Existing Review
+
+    const existingReview =
+      await getStudentReviewForCourse(
+        studentId,
+        courseId
+      );
+
+    if (existingReview) {
       return res.status(200).json({
         success: true,
         canReview: false,
-        message: "Student is not enrolled in this course",
+        reason: "You have already reviewed this course.",
       });
     }
 
-    // Check if student already reviewed this course
-    const existingRating = await Rating.findOne({
-      course: courseId,
-      user: userId,
-    });
-
-    if (existingRating) {
-      return res.status(200).json({
-        success: true,
-        canReview: false,
-        message: "Student has already reviewed this course",
-      });
-    }
+    // Eligible to Review
 
     return res.status(200).json({
       success: true,
       canReview: true,
-      message: "Student is eligible to review this course",
+      reason: null,
+
+      requirements: {
+        minimumProgressRequired:
+          MINIMUM_PROGRESS_FOR_REVIEW,
+      },
+
+      progress: {
+        completedVideos:
+          progress.completedVideos.length,
+        completionPercentage:
+          progress.completionPercentage,
+      },
+
+      message: "Student is eligible to review this course.",
     });
   } catch (error) {
-    return res.status(500).json({
+    console.error(error);
+
+    return res.status(error.statusCode || 500).json({
       success: false,
-      message: "Error checking review eligibility",
-      error: error.message,
+      canReview: false,
+
+      requirements: {
+        minimumProgressRequired:
+          MINIMUM_PROGRESS_FOR_REVIEW,
+      },
+
+      reason: error.message || "Internal Server Error",
     });
   }
 };
+
+
+
+export const getRecentReviews = async (req, res) => {
+  try {
+    // Pagination
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.min(
+      50,
+      Math.max(1, Number(req.query.limit) || 10)
+    );
+    const skip = (page - 1) * limit;
+
+    // Fetch Reviews
+    const reviews = await RatingAndReview.find({})
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate({
+        path: "user",
+        select: "firstName lastName profileImage",
+      })
+      .populate({
+        path: "course",
+        select:
+          "courseName thumbnail averageRating totalRatings",
+      })
+      .lean();
+
+    // Total Reviews
+    const totalReviews =
+      await RatingAndReview.countDocuments();
+
+    const totalPages = Math.ceil(
+      totalReviews / limit
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Recent reviews fetched successfully",
+
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalReviews,
+        limit,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      },
+
+      data: reviews,
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message:
+        error.message ||
+        "Internal Server Error",
+    });
+  }
+};
+
+
+
+export const getRatingDistribution = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+
+    const course = await validateCourse(courseId);
+
+    const distribution =
+      await getCourseRatingDistribution(
+        course._id
+      );
+
+    return res.status(200).json({
+      success: true,
+      message: "Rating distribution fetched successfully",
+
+      data: {
+        courseId: course._id,
+        courseName: course.courseName,
+        averageRating: course.averageRating,
+        totalRatings: course.totalRatings,
+        distribution,
+      },
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message:
+        error.message ||
+        "Internal Server Error",
+    });
+  }
+};
+
+
+
+
+export const getCourseRatingSummary = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+
+    const course = await validateCourse(courseId);
+
+    const distribution =
+      await getCourseRatingDistribution(
+        course._id
+      );
+
+    const totalRatings = course.totalRatings || 0;
+
+    const breakdown = {};
+
+    Object.entries(distribution).forEach(
+      ([star, count]) => {
+        breakdown[star] = {
+          count,
+          percentage:
+            totalRatings > 0
+              ? Number(
+                  (
+                    (count / totalRatings) *
+                    100
+                  ).toFixed(1)
+                )
+              : 0,
+        };
+      }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message:
+        "Course rating summary fetched successfully",
+
+      data: {
+        courseId: course._id,
+        courseName: course.courseName,
+        averageRating: course.averageRating,
+        totalRatings: course.totalRatings,
+        breakdown,
+      },
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message:
+        error.message ||
+        "Internal Server Error",
+    });
+  }
+};
+

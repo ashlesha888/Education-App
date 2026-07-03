@@ -1,7 +1,7 @@
 import Course from "../models/course.js";
 import RatingAndReview from "../models/ratingAndReview.js";
 import CourseProgress from "../models/courseProgress.js";
-
+import { MINIMUM_PROGRESS_FOR_REVIEW } from "../config/constants.js";
 import AppError from "./AppError.js";
 
 import {
@@ -9,9 +9,7 @@ import {
   calculateCourseCompletion,
 } from "./progressHelper.js";
 
-import {
-  MINIMUM_PROGRESS_FOR_REVIEW,
-} from "../config/constants.js";
+
 
 // Check Existing Review
 
@@ -175,5 +173,39 @@ export const getStudentReviewForCourse = async (
   }
 
   return await query;
+};
+
+
+
+export const getCourseRatingDistribution = async (courseId) => {
+  const ratingStats = await RatingAndReview.aggregate([
+    {
+      $match: {
+        course: courseId,
+      },
+    },
+    {
+      $group: {
+        _id: "$rating",
+        count: {
+          $sum: 1,
+        },
+      },
+    },
+  ]);
+
+  const distribution = {
+    1: 0,
+    2: 0,
+    3: 0,
+    4: 0,
+    5: 0,
+  };
+
+  ratingStats.forEach((item) => {
+    distribution[item._id] = item.count;
+  });
+
+  return distribution;
 };
 
