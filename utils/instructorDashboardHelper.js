@@ -187,23 +187,30 @@ export const formatCourseDashboardData = (
   };
 };
 
-export const getInstructorDashboardData =
-  async (instructorId) => {
-    const courses =
-      await fetchInstructorCourses(
-        instructorId
-      );
 
-    const statistics =
-      calculateInstructorStatistics(
-        courses
-      );
+export const getInstructorDashboardData = async (
+  instructorId
+) => {
+  const courses =
+    await fetchInstructorCourses(
+      instructorId
+    );
 
-    return {
-      courses,
-      statistics,
-    };
+  const statistics =
+    calculateInstructorStatistics(
+      courses
+    );
+
+  return {
+    statistics,
+    courses,
+    topCourses: getTopCourses(courses),
+    recentCourses:
+      getRecentCourses(courses),
   };
+};
+
+
 
 
 export const getTopCourses = (
@@ -230,6 +237,38 @@ export const getRecentCourses = (
   )
     .slice(0, limit)
     .map(formatCourseDashboardData);
+};
+
+
+export const getCourseStatisticsData = (
+  courses
+) => {
+  return courses.map((course) => ({
+    courseId: course._id,
+
+    courseName: course.courseName,
+
+    thumbnail: course.thumbnail,
+
+    status: course.status,
+
+    price: course.price,
+
+    totalStudents:
+      course.studentsEnrolled.length,
+
+    totalRevenue:
+      calculateCourseRevenue(course),
+
+    averageRating:
+      course.averageRating,
+
+    totalRatings:
+      course.totalRatings,
+
+    createdAt:
+      course.createdAt,
+  }));
 };
 
 
