@@ -3,12 +3,16 @@ import {
 } from "../config/constants.js";
 import RatingAndReview from "../models/ratingAndReview.js";
 import Course from "../models/courseModel.js";
-import { validateCourse } from "../utils/progressHelper.js";
+import {
+  validateStudent,
+  validateCourse,
+} from "../utils/progressHelper.js";
 import {
     checkExistingReview,
     checkMinimumProgressForReview,
     updateCourseAverageRating,
     updateCourseRatingStats,
+    getStudentReviewForCourse,
 } from "../utils/ratingHelper.js";
 import AppError from "../utils/AppError.js";
 import mongoose from "mongoose";
@@ -451,6 +455,66 @@ export const getTopRatedCourses = async (req, res) => {
       message:
         error.message ||
         "Internal Server Error",
+    });
+  }
+};
+
+
+export const getStudentReview = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const studentId = req.user.id;
+
+    // Validate Student
+
+    await validateStudent(studentId);
+
+    // Validate Course
+
+    await validateCourse(courseId);
+
+    // Get Student Review
+
+    const review = await getStudentReviewForCourse(
+      studentId,
+      courseId
+    );
+
+    if (!review) {
+      return res.status(404).json({
+        success: false,
+        message: "Review not found for this course",
+      });
+    }
+
+    // Populate Review
+
+    const populatedReview =
+      await RatingAndReview.findById(review._id)
+        .populate({
+          path: "user",
+          select: "firstName lastName profileImage",
+        })
+        .populate({
+          path: "course",
+          select: "courseName thumbnail averageRating",
+        });
+
+    // Success Response
+
+    return res.status(200).json({
+      success: true,
+      message: "Student review fetched successfully",
+      data: populatedReview,
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message:
+        error.message || "Internal Server Error",
     });
   }
 };
