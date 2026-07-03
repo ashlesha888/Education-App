@@ -160,13 +160,20 @@ export const updateCourseRatingStats = async (
 
 export const getStudentReviewForCourse = async (
   studentId,
-  courseId
+  courseId,
+  populate = false
 ) => {
-  const review = await RatingAndReview.findOne({
+  let query = RatingAndReview.findOne({
     user: studentId,
     course: courseId,
   });
 
-  return review;
+  if (populate) {
+    query = query
+      .populate("user", "firstName lastName profileImage")
+      .populate("course", "courseName thumbnail");
+  }
+
+  return await query;
 };
 
