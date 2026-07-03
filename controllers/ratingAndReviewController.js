@@ -1,4 +1,6 @@
-
+import {
+  MINIMUM_RATINGS_FOR_TOP_COURSE,
+} from "../config/constants.js";
 import RatingAndReview from "../models/ratingAndReview.js";
 import Course from "../models/courseModel.js";
 import { validateCourse } from "../utils/progressHelper.js";
@@ -414,10 +416,12 @@ export const getTopRatedCourses = async (req, res) => {
     const limit =
       Number(req.query.limit) || 10;
 
-    const courses = await Course.find({
-      status: "Published",
-    })
-      .sort({
+   const courses = await Course.find({
+  status: "Published",
+  totalRatings: {
+    $gte: MINIMUM_RATINGS_FOR_TOP_COURSE,
+  },
+}).sort({
         averageRating: -1,
         totalRatings: -1,
       })

@@ -58,6 +58,9 @@ router.get(
   "/distribution/:courseId",
   getRatingDistribution
 );
-
+router.get(
+  "/summary/:courseId",
+  getCourseRatingSummary
+);
 export default router;
 

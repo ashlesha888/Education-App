@@ -156,3 +156,17 @@ export const updateCourseRatingStats = async (
   };
 };
 
+// Get Student Review For a Course
+
+export const getStudentReviewForCourse = async (
+  studentId,
+  courseId
+) => {
+  const review = await RatingAndReview.findOne({
+    user: studentId,
+    course: courseId,
+  });
+
+  return review;
+};
+

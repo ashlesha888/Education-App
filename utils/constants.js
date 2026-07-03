@@ -1,2 +1,2 @@
 export const MINIMUM_PROGRESS_FOR_REVIEW = 20;
-
+export const MINIMUM_RATINGS_FOR_TOP_COURSE = 5;
