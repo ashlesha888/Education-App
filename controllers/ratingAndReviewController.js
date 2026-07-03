@@ -519,3 +519,55 @@ export const getStudentReview = async (req, res) => {
   }
 };
 
+
+export const checkCanReview = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const userId = req.user.id;
+
+    // Validate inputs
+    if (!courseId) {
+      return res.status(400).json({
+        success: false,
+        message: "Course ID is required",
+      });
+    }
+
+    // Check enrollment using existing helper logic
+    const isEnrolled = await checkEnrollmentHelper(userId, courseId);
+
+    if (!isEnrolled) {
+      return res.status(200).json({
+        success: true,
+        canReview: false,
+        message: "Student is not enrolled in this course",
+      });
+    }
+
+    // Check if student already reviewed this course
+    const existingRating = await Rating.findOne({
+      course: courseId,
+      user: userId,
+    });
+
+    if (existingRating) {
+      return res.status(200).json({
+        success: true,
+        canReview: false,
+        message: "Student has already reviewed this course",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      canReview: true,
+      message: "Student is eligible to review this course",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error checking review eligibility",
+      error: error.message,
+    });
+  }
+};
