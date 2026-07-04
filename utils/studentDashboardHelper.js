@@ -181,51 +181,21 @@ export const getContinueWatchingData = (
             )
           : 0;
 
-      return {
-        courseId:
-          progress.courseId._id,
+    return {
+    ...formatCourseCard(
+        progress.courseId
+    ),
 
-        courseName:
-          progress.courseId.courseName,
+    completedVideos,
 
-        thumbnail:
-          progress.courseId.thumbnail,
+    totalVideos,
 
-        instructor:
-          progress.courseId
-            .instructor,
+    completionPercentage:
+        100,
 
-        averageRating:
-          progress.courseId
-            .averageRating,
-
-        totalRatings:
-          progress.courseId
-            .totalRatings,
-
-        lastWatchedVideo: {
-          _id:
-            progress.lastWatchedVideo
-              ._id,
-
-          title:
-            progress.lastWatchedVideo
-              .title,
-
-          timeDuration:
-            progress.lastWatchedVideo
-              .timeDuration,
-        },
-
-        completedVideos,
-
-        totalVideos,
-
-        progressPercentage,
-
-        updatedAt:
-          progress.updatedAt,
-      };
+    completedAt:
+        progress.updatedAt,
+};
     })
     .sort(
       (a, b) =>
@@ -255,37 +225,21 @@ export const getRecentlyCompletedData = (
         progress.completedVideos
           ?.length || 0;
 
-      return {
-        courseId:
-          progress.courseId._id,
+return {
+    ...formatCourseCard(
+        progress.courseId
+    ),
 
-        courseName:
-          progress.courseId.courseName,
+    completedVideos,
 
-        thumbnail:
-          progress.courseId.thumbnail,
+    totalVideos,
 
-        instructor:
-          progress.courseId
-            .instructor,
+    completionPercentage:
+        100,
 
-        averageRating:
-          progress.courseId
-            .averageRating,
-
-        totalRatings:
-          progress.courseId
-            .totalRatings,
-
-        completedVideos,
-
-        totalVideos,
-
-        completionPercentage: 100,
-
-        completedAt:
-          progress.updatedAt,
-      };
+    completedAt:
+        progress.updatedAt,
+};
     })
     .sort(
       (a, b) =>
@@ -346,6 +300,22 @@ const getTotalVideos = (course) => {
   return totalVideos;
 };
 
-
+const formatCourseCard = (
+  course
+) => {
+  return {
+    courseId: course._id,
+    courseName:
+      course.courseName,
+    thumbnail:
+      course.thumbnail,
+    instructor:
+      course.instructor,
+    averageRating:
+      course.averageRating,
+    totalRatings:
+      course.totalRatings,
+  };
+};
 
 
