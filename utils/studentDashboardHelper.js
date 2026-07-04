@@ -250,6 +250,84 @@ return {
     );
 };
 
+export const getLearningProgressData = (
+  courseProgress
+) => {
+  return courseProgress
+    .filter(
+      (progress) =>
+        progress.courseId
+    )
+    .map((progress) => {
+      const totalVideos =
+        getTotalVideos(
+          progress.courseId
+        );
+
+      const completedVideos =
+        progress.completedVideos
+          ?.length || 0;
+
+      const progressPercentage =
+        totalVideos > 0
+          ? Number(
+              (
+                (completedVideos /
+                  totalVideos) *
+                100
+              ).toFixed(2)
+            )
+          : 0;
+
+      return {
+        ...formatCourseCard(
+          progress.courseId
+        ),
+
+        totalVideos,
+
+        completedVideos,
+
+        remainingVideos:
+          totalVideos -
+          completedVideos,
+
+        progressPercentage,
+
+        isCompleted:
+          progress.isCompleted,
+
+        lastWatchedVideo:
+          progress.lastWatchedVideo
+            ? {
+                _id:
+                  progress
+                    .lastWatchedVideo
+                    ._id,
+
+                title:
+                  progress
+                    .lastWatchedVideo
+                    .title,
+
+                timeDuration:
+                  progress
+                    .lastWatchedVideo
+                    .timeDuration,
+              }
+            : null,
+
+        lastActivity:
+          progress.updatedAt,
+      };
+    })
+    .sort(
+      (a, b) =>
+        b.progressPercentage -
+        a.progressPercentage
+    );
+};
+
 const parseDurationToSeconds = (
   duration
 ) => {
