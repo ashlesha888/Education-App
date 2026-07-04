@@ -209,7 +209,10 @@ const progressPercentage =
 };
 
 export const getRecentlyCompletedData = (
-  courseProgress
+  courseProgress,
+  {
+    limit = null,
+  } = {}
 ) => {
   return courseProgress
     .filter(
@@ -244,12 +247,16 @@ return {
 };
     })
     .sort(
-      (a, b) =>
-        new Date(
-          b.completedAt
-        ) -
-        new Date(a.completedAt)
-    );
+  (a, b) =>
+    new Date(
+      b.completedAt
+    ) -
+    new Date(a.completedAt)
+)
+.slice(
+  0,
+  limit || undefined
+);
 };
 
 export const getLearningProgressData = (
