@@ -468,3 +468,86 @@ const formatLearningTime = (
       ),
   };
 };
+
+export const getStudentDashboardData =
+  async (
+    studentId,
+    options = {}
+  ) => {
+    const {
+      statistics = false,
+      purchasedCourses = false,
+      continueWatching = false,
+      recentlyCompleted = false,
+      learningProgress = false,
+      timeSpent = false,
+    } = options;
+
+    const {
+      courseProgress,
+      totalCourses,
+    } =
+      await fetchPurchasedCourses(
+        studentId
+      );
+
+    const dashboardData = {
+      totalCourses,
+    };
+
+    if (statistics) {
+      dashboardData.statistics =
+        calculateStudentStatistics(
+          courseProgress
+        );
+    }
+
+    if (purchasedCourses) {
+      dashboardData.purchasedCourses =
+        courseProgress.map(
+          (progress) => ({
+            ...formatCourseCard(
+              progress.courseId
+            ),
+            isCompleted:
+              progress.isCompleted,
+            enrolledAt:
+              progress.createdAt,
+          })
+        );
+    }
+
+    if (continueWatching) {
+      dashboardData.continueWatching =
+        getContinueWatchingData(
+          courseProgress
+        );
+    }
+
+    if (
+      recentlyCompleted
+    ) {
+      dashboardData.recentlyCompleted =
+        getRecentlyCompletedData(
+          courseProgress
+        );
+    }
+
+    if (
+      learningProgress
+    ) {
+      dashboardData.learningProgress =
+        getLearningProgressData(
+          courseProgress
+        );
+    }
+
+    if (timeSpent) {
+      dashboardData.timeSpent =
+        getTimeSpentLearningData(
+          courseProgress
+        );
+    }
+
+    return dashboardData;
+  };
