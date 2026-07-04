@@ -396,4 +396,19 @@ const formatCourseCard = (
   };
 };
 
+const calculateProgressPercentage = (
+  completedVideos,
+  totalVideos
+) => {
+  if (totalVideos === 0) {
+    return 0;
+  }
 
+  return Number(
+    (
+      (completedVideos /
+        totalVideos) *
+      100
+    ).toFixed(2)
+  );
+};
