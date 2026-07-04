@@ -318,6 +318,75 @@ export const getLearningProgressData = (
     );
 };
 
+export const getTimeSpentLearningData = (
+  courseProgress
+) => {
+  let totalSeconds = 0;
+
+  const courseWiseTime = courseProgress
+    .filter(
+      (progress) =>
+        progress.courseId
+    )
+    .map((progress) => {
+      let courseSeconds = 0;
+
+      progress.completedVideos?.forEach(
+        (video) => {
+          courseSeconds +=
+            parseDurationToSeconds(
+              video.timeDuration
+            );
+        }
+      );
+
+      totalSeconds +=
+        courseSeconds;
+
+      return {
+        ...formatCourseCard(
+          progress.courseId
+        ),
+
+        totalLearningSeconds:
+          courseSeconds,
+
+        totalLearningMinutes:
+          Math.floor(
+            courseSeconds / 60
+          ),
+
+        totalLearningHours:
+          Number(
+            (
+              courseSeconds /
+              3600
+            ).toFixed(2)
+          ),
+      };
+    });
+
+  return {
+    totalLearningSeconds:
+      totalSeconds,
+
+    totalLearningMinutes:
+      Math.floor(
+        totalSeconds / 60
+      ),
+
+    totalLearningHours:
+      Number(
+        (
+          totalSeconds /
+          3600
+        ).toFixed(2)
+      ),
+
+    courseWiseTime,
+  };
+};
+
 const parseDurationToSeconds = (
   duration
 ) => {
