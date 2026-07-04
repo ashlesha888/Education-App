@@ -386,6 +386,7 @@ export const getMonthlyEnrollmentsData = (
 };
 
 
+
 export const getCourseCompletionStatistics =
   async (courses) => {
     const courseIds = courses.map(
@@ -422,49 +423,48 @@ export const getCourseCompletionStatistics =
         },
       ]);
 
-    const statistics = courses.map(
-      (course) => {
-        const stat =
-          progressStats.find(
-            (item) =>
-              item._id.toString() ===
-              course._id.toString()
-          );
+    const statsMap = new Map();
 
-        const totalStudents =
-          stat?.totalStudents || 0;
+    progressStats.forEach((stat) => {
+      statsMap.set(
+        stat._id.toString(),
+        stat
+      );
+    });
 
-        const completedStudents =
-          stat?.completedStudents || 0;
+    return courses.map((course) => {
+      const stat = statsMap.get(
+        course._id.toString()
+      );
 
-        const completionRate =
-          totalStudents > 0
-            ? Number(
-                (
-                  (completedStudents /
-                    totalStudents) *
-                  100
-                ).toFixed(2)
-              )
-            : 0;
+      const totalStudents =
+        stat?.totalStudents || 0;
 
-        return {
-          courseId: course._id,
+      const completedStudents =
+        stat?.completedStudents || 0;
 
-          courseName:
-            course.courseName,
+      const completionRate =
+        totalStudents > 0
+          ? Number(
+              (
+                (completedStudents /
+                  totalStudents) *
+                100
+              ).toFixed(2)
+            )
+          : 0;
 
-          totalStudents,
-
-          completedStudents,
-
-          completionRate,
-        };
-      }
-    );
-
-    return statistics;
+      return {
+        courseId: course._id,
+        courseName:
+          course.courseName,
+        totalStudents,
+        completedStudents,
+        completionRate,
+      };
+    });
   };
+
 
 
 
