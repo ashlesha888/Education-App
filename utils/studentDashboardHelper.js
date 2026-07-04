@@ -72,7 +72,7 @@ export const validateStudent = async (studentId) => {
     return student;
 };
 
-export const calculateStudentStatistics = (
+export const getDashboardSummaryData = (
   courseProgress
 ) => {
   const totalPurchasedCourses =
@@ -511,7 +511,7 @@ export const getStudentDashboardData = async (
     };
 
     if (statistics) {
-      dashboardData.statistics =
+      dashboardData.dashboardSummary =
         calculateStudentStatistics(
           courseProgress
         );
