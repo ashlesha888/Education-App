@@ -260,14 +260,36 @@ return {
 };
 
 export const getLearningProgressData = (
-  courseProgress
+  courseProgress,
+  {
+    onlyCompleted = false,
+    onlyInProgress = false,
+  } = {}
 ) => {
-  return courseProgress
-    .filter(
+  
+  let filteredCourses =
+  courseProgress.filter(
+    (progress) =>
+      progress.courseId
+  );
+
+if (onlyCompleted) {
+  filteredCourses =
+    filteredCourses.filter(
       (progress) =>
-        progress.courseId
-    )
-    .map((progress) => {
+        progress.isCompleted
+    );
+}
+
+if (onlyInProgress) {
+  filteredCourses =
+    filteredCourses.filter(
+      (progress) =>
+        !progress.isCompleted
+    );
+}
+
+return filteredCourses.map((progress) => {
       const totalVideos =
         getTotalVideos(
           progress.courseId
