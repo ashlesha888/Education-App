@@ -170,16 +170,11 @@ export const getContinueWatchingData = (
         progress.completedVideos
           ?.length || 0;
 
-      const progressPercentage =
-        totalVideos > 0
-          ? Number(
-              (
-                (completedVideos /
-                  totalVideos) *
-                100
-              ).toFixed(2)
-            )
-          : 0;
+const progressPercentage =
+  calculateProgressPercentage(
+    completedVideos,
+    totalVideos
+  );
 
     return {
     ...formatCourseCard(
@@ -268,16 +263,11 @@ export const getLearningProgressData = (
         progress.completedVideos
           ?.length || 0;
 
-      const progressPercentage =
-        totalVideos > 0
-          ? Number(
-              (
-                (completedVideos /
-                  totalVideos) *
-                100
-              ).toFixed(2)
-            )
-          : 0;
+  const progressPercentage =
+  calculateProgressPercentage(
+    completedVideos,
+    totalVideos
+  );
 
       return {
         ...formatCourseCard(
