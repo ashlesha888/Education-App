@@ -344,47 +344,23 @@ export const getTimeSpentLearningData = (
         courseSeconds;
 
       return {
-        ...formatCourseCard(
-          progress.courseId
-        ),
+    ...formatCourseCard(
+        progress.courseId
+    ),
 
-        totalLearningSeconds:
-          courseSeconds,
-
-        totalLearningMinutes:
-          Math.floor(
-            courseSeconds / 60
-          ),
-
-        totalLearningHours:
-          Number(
-            (
-              courseSeconds /
-              3600
-            ).toFixed(2)
-          ),
-      };
+    ...formatLearningTime(
+        courseSeconds
+    ),
+};
     });
 
-  return {
-    totalLearningSeconds:
-      totalSeconds,
-
-    totalLearningMinutes:
-      Math.floor(
-        totalSeconds / 60
-      ),
-
-    totalLearningHours:
-      Number(
-        (
-          totalSeconds /
-          3600
-        ).toFixed(2)
-      ),
+return {
+    ...formatLearningTime(
+        totalSeconds
+    ),
 
     courseWiseTime,
-  };
+};
 };
 
 const parseDurationToSeconds = (
@@ -470,4 +446,25 @@ const calculateProgressPercentage = (
       100
     ).toFixed(2)
   );
+};
+
+const formatLearningTime = (
+  seconds
+) => {
+  return {
+    totalLearningSeconds:
+      seconds,
+
+    totalLearningMinutes:
+      Math.floor(
+        seconds / 60
+      ),
+
+    totalLearningHours:
+      Number(
+        (
+          seconds / 3600
+        ).toFixed(2)
+      ),
+  };
 };
