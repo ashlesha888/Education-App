@@ -366,7 +366,11 @@ export const getTimeSpentLearningData = (
     )
     .map((progress) => {
       let courseSeconds = 0;
-
+courseWiseTime.sort(
+  (a, b) =>
+    b.totalLearningSeconds -
+    a.totalLearningSeconds
+);
       progress.completedVideos?.forEach(
         (video) => {
           courseSeconds +=

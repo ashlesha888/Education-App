@@ -1,4 +1,4 @@
-javascript
+
 import {
   getStudentDashboardData,
 } from "../utils/studentDashboardHelper.js";
@@ -42,7 +42,7 @@ export const getStudentDashboard =async (req, res) => {
     }
   };
 
-javascript
+
 export const getDashboardSummary =async (req, res) => {
     try {
       const studentId =
@@ -79,7 +79,7 @@ export const getDashboardSummary =async (req, res) => {
     }
   };
 
-javascript
+
 export const getPurchasedCourses =async (req, res) => {
     try {
       const studentId =
@@ -121,7 +121,7 @@ export const getPurchasedCourses =async (req, res) => {
     }
   };
 
-javascript
+
 export const getContinueWatching =async (req, res) => {
     try {
       const studentId =
@@ -163,7 +163,7 @@ export const getContinueWatching =async (req, res) => {
     }
   };
 
-javascript
+
 export const getRecentlyCompletedCourses =async (req, res) => {
     try {
       const studentId =
@@ -205,7 +205,7 @@ export const getRecentlyCompletedCourses =async (req, res) => {
     }
   };
 
-javascript
+
 export const getLearningProgress =async (req, res) => {
     try {
       const studentId =
@@ -231,6 +231,44 @@ export const getLearningProgress =async (req, res) => {
 
         data:
           learningProgress,
+      });
+
+    } catch (error) {
+      console.error(error);
+
+      return res.status(
+        error.statusCode || 500
+      ).json({
+        success: false,
+        message:
+          error.message ||
+          "Internal Server Error",
+      });
+    }
+  };
+
+
+export const getTimeSpentLearning =async (req, res) => {
+    try {
+      const studentId =
+        req.user.id;
+
+      const {
+        timeSpent,
+      } =
+        await getStudentDashboardData(
+          studentId,
+          {
+            timeSpent: true,
+          }
+        );
+
+      return res.status(200).json({
+        success: true,
+        message:
+          "Learning time fetched successfully",
+
+        data: timeSpent,
       });
 
     } catch (error) {

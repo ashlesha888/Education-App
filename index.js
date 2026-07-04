@@ -12,6 +12,7 @@ import ratingRoutes from "./routes/ratingRoutes.js";
 import sectionRoutes from "./routes/sectionRoutes.js";
 import enrollmentRoutes from "./routes/enrollmentRoutes.js";
 import instructorDashboardRoutes from "./routes/instructorDashboardRoutes.js";
+import studentDashboardRoutes from "./routes/studentDashboardRoutes.js";
 
 dotenv.config();
 
@@ -31,6 +32,7 @@ app.use("/api/v1/rating", ratingRoutes);
 app.use("/api/v1/section", sectionRoutes);
 app.use("/api/v1/enrollment", enrollmentRoutes);
 app.use("/api/v1/instructor-dashboard",instructorDashboardRoutes);
+app.use("/api/v1/student", studentDashboardRoutes);
 
 app.get("/", (req, res) => {
   res.status(200).json({
