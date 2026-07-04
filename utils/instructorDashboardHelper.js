@@ -271,7 +271,7 @@ export const getCourseStatisticsData = (
   }));
 };
 
-```javascript id="4m4bxv"
+
 export const getRecentEnrollmentsData = (
   courses,
   limit = 10
@@ -318,8 +318,7 @@ export const getRecentEnrollmentsData = (
     )
     .slice(0, limit);
 };
-```
-```javascript id="7i34n0"
+
 export const getMonthlyRevenueData = (
   courses
 ) => {
@@ -359,5 +358,114 @@ export const getMonthlyRevenueData = (
     })
   );
 };
-```
+
+
+export const getMonthlyEnrollmentsData = (
+  courses
+) => {
+  const monthlyEnrollments = {};
+
+  courses.forEach((course) => {
+    const month = new Date(
+      course.createdAt
+    ).toLocaleString("default", {
+      month: "short",
+    });
+
+    monthlyEnrollments[month] =
+      (monthlyEnrollments[month] || 0) +
+      course.studentsEnrolled.length;
+  });
+
+  return Object.entries(
+    monthlyEnrollments
+  ).map(([month, enrollments]) => ({
+    month,
+    enrollments,
+  }));
+};
+
+
+export const getCourseCompletionStatistics =
+  async (courses) => {
+    const courseIds = courses.map(
+      (course) => course._id
+    );
+
+    const progressStats =
+      await CourseProgress.aggregate([
+        {
+          $match: {
+            courseId: {
+              $in: courseIds,
+            },
+          },
+        },
+        {
+          $group: {
+            _id: "$courseId",
+
+            totalStudents: {
+              $sum: 1,
+            },
+
+            completedStudents: {
+              $sum: {
+                $cond: [
+                  "$isCompleted",
+                  1,
+                  0,
+                ],
+              },
+            },
+          },
+        },
+      ]);
+
+    const statistics = courses.map(
+      (course) => {
+        const stat =
+          progressStats.find(
+            (item) =>
+              item._id.toString() ===
+              course._id.toString()
+          );
+
+        const totalStudents =
+          stat?.totalStudents || 0;
+
+        const completedStudents =
+          stat?.completedStudents || 0;
+
+        const completionRate =
+          totalStudents > 0
+            ? Number(
+                (
+                  (completedStudents /
+                    totalStudents) *
+                  100
+                ).toFixed(2)
+              )
+            : 0;
+
+        return {
+          courseId: course._id,
+
+          courseName:
+            course.courseName,
+
+          totalStudents,
+
+          completedStudents,
+
+          completionRate,
+        };
+      }
+    );
+
+    return statistics;
+  };
+
+
+
 
