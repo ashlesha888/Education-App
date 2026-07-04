@@ -236,6 +236,66 @@ export const getContinueWatchingData = (
     );
 };
 
+export const getRecentlyCompletedData = (
+  courseProgress
+) => {
+  return courseProgress
+    .filter(
+      (progress) =>
+        progress.isCompleted &&
+        progress.courseId
+    )
+    .map((progress) => {
+      const totalVideos =
+        getTotalVideos(
+          progress.courseId
+        );
+
+      const completedVideos =
+        progress.completedVideos
+          ?.length || 0;
+
+      return {
+        courseId:
+          progress.courseId._id,
+
+        courseName:
+          progress.courseId.courseName,
+
+        thumbnail:
+          progress.courseId.thumbnail,
+
+        instructor:
+          progress.courseId
+            .instructor,
+
+        averageRating:
+          progress.courseId
+            .averageRating,
+
+        totalRatings:
+          progress.courseId
+            .totalRatings,
+
+        completedVideos,
+
+        totalVideos,
+
+        completionPercentage: 100,
+
+        completedAt:
+          progress.updatedAt,
+      };
+    })
+    .sort(
+      (a, b) =>
+        new Date(
+          b.completedAt
+        ) -
+        new Date(a.completedAt)
+    );
+};
+
 const parseDurationToSeconds = (
   duration
 ) => {
