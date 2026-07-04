@@ -469,8 +469,23 @@ const formatLearningTime = (
   };
 };
 
-export const getStudentDashboardData =
-  async (
+const getPurchasedCoursesData = (
+  courseProgress
+) => {
+  return courseProgress.map(
+    (progress) => ({
+      ...formatCourseCard(
+        progress.courseId
+      ),
+      isCompleted:
+        progress.isCompleted,
+      enrolledAt:
+        progress.createdAt,
+    })
+  );
+};
+
+export const getStudentDashboardData = async (
     studentId,
     options = {}
   ) => {
@@ -504,17 +519,9 @@ export const getStudentDashboardData =
 
     if (purchasedCourses) {
       dashboardData.purchasedCourses =
-        courseProgress.map(
-          (progress) => ({
-            ...formatCourseCard(
-              progress.courseId
-            ),
-            isCompleted:
-              progress.isCompleted,
-            enrolledAt:
-              progress.createdAt,
-          })
-        );
+  getPurchasedCoursesData(
+    courseProgress
+  );
     }
 
     if (continueWatching) {
