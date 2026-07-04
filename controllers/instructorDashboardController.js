@@ -5,6 +5,7 @@ import {
     formatCourseDashboardData, getInstructorDashboardData,
     getRecentCourses,
     getTopCourses,
+    getRecentEnrollmentsData,
 } from "../utils/instructorDashboardHelper.js";
 
 
@@ -101,7 +102,43 @@ export const getInstructorCourses = async (req, res) => {
 };
 
 
-export const getCourseStatistics = async (req, res) => { };
+
+export const getCourseStatistics = async (req, res) => {
+  try {
+    const instructorId = req.user.id;
+
+    // 1. Read and parse the query parameters safely with defaults
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+
+    // 2. Pass them inside the options object to the orchestrator
+    const { courseStatistics } = await getInstructorDashboardData(
+      instructorId,
+      {
+        courseStatistics: true,
+        page,   
+        limit,  
+      }
+    );
+
+    // 3. Return the paginated structure response
+    return res.status(200).json({
+      success: true,
+      message: "Course statistics fetched successfully",
+      pagination: courseStatistics.pagination, // Metadata (currentPage, totalPages, etc.)
+      data: courseStatistics.statistics,       // The sliced items array
+    });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
+  }
+};
+
+
 
 
 export const getStudentCount = async (req, res) => {
@@ -351,8 +388,51 @@ export const getDashboardSummary = async (
 
 
 
+export const getRecentEnrollments = async (
+  req,
+  res
+) => {
+  try {
+    const instructorId = req.user.id;
 
-export const getRecentEnrollments = async (req, res) => { };
+    const limit =
+      Number(req.query.limit) || 10;
+
+    const { courses } =
+      await getInstructorDashboardData(
+        instructorId
+      );
+
+    const recentEnrollments =
+      getRecentEnrollmentsData(
+        courses,
+        limit
+      );
+
+    return res.status(200).json({
+      success: true,
+      message:
+        "Recent enrollments fetched successfully",
+      count:
+        recentEnrollments.length,
+      data: recentEnrollments,
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    return res.status(
+      error.statusCode || 500
+    ).json({
+      success: false,
+      message:
+        error.message ||
+        "Internal Server Error",
+    });
+  }
+};
+
+
 
 
 export const getTopPerformingCourses = async (req, res) => {
@@ -407,9 +487,137 @@ export const getTopPerformingCourses = async (req, res) => {
 
 
 
-export const getMonthlyRevenue = async (req, res) => { };
 
-export const getMonthlyEnrollments = async (req, res) => { };
+export const getMonthlyRevenue = async (
+  req,
+  res
+) => {
+  try {
+    const instructorId = req.user.id;
 
-export const getCourseCompletionStatistics = async (req, res) => { };
+    const {
+      monthlyRevenue,
+    } =
+      await getInstructorDashboardData(
+        instructorId,
+        {
+          monthlyRevenue: true,
+        }
+      );
+
+    return res.status(200).json({
+      success: true,
+      message:
+        "Monthly revenue fetched successfully",
+
+      count:
+        monthlyRevenue.length,
+
+      data: monthlyRevenue,
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    return res.status(
+      error.statusCode || 500
+    ).json({
+      success: false,
+      message:
+        error.message ||
+        "Internal Server Error",
+    });
+  }
+};
+
+
+
+
+export const getMonthlyEnrollments = async (
+  req,
+  res
+) => {
+  try {
+    const instructorId = req.user.id;
+
+    const {
+      monthlyEnrollments,
+    } =
+      await getInstructorDashboardData(
+        instructorId,
+        {
+          monthlyEnrollments: true,
+        }
+      );
+
+    return res.status(200).json({
+      success: true,
+      message:
+        "Monthly enrollments fetched successfully",
+
+      count:
+        monthlyEnrollments.length,
+
+      data: monthlyEnrollments,
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    return res.status(
+      error.statusCode || 500
+    ).json({
+      success: false,
+      message:
+        error.message ||
+        "Internal Server Error",
+    });
+  }
+};
+
+
+
+
+export const getCourseCompletionStatistics =
+  async (req, res) => {
+    try {
+      const instructorId = req.user.id;
+
+      const {
+        completionStatistics,
+      } =
+        await getInstructorDashboardData(
+          instructorId,
+          {
+            completionStatistics: true,
+          }
+        );
+
+      return res.status(200).json({
+        success: true,
+        message:
+          "Course completion statistics fetched successfully",
+
+        count:
+          completionStatistics.length,
+
+        data:
+          completionStatistics,
+      });
+
+    } catch (error) {
+      console.error(error);
+
+      return res.status(
+        error.statusCode || 500
+      ).json({
+        success: false,
+        message:
+          error.message ||
+          "Internal Server Error",
+      });
+    }
+  };
+
+
 

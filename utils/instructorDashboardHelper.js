@@ -11,11 +11,11 @@ export const getEnrollmentCount = (course) => {
 
 export const calculateCourseRevenue = (course) => {
   if (!course) return 0;
-  
-  
+
+
   const studentCount = getEnrollmentCount(course);
   const price = course.price || 0;
-  
+
   return studentCount * price;
 };
 
@@ -55,32 +55,32 @@ export const calculateInstructorStatistics = (courses) => {
   const overallAverageRating =
     ratedCourses.length > 0
       ? Number(
-          (
-            ratedCourses.reduce(
-              (sum, course) =>
-                sum + course.averageRating,
-              0
-            ) / ratedCourses.length
-          ).toFixed(2)
-        )
+        (
+          ratedCourses.reduce(
+            (sum, course) =>
+              sum + course.averageRating,
+            0
+          ) / ratedCourses.length
+        ).toFixed(2)
+      )
       : 0;
 
   const averageStudentsPerCourse =
     totalCourses > 0
       ? Number(
-          (
-            totalStudents / totalCourses
-          ).toFixed(1)
-        )
+        (
+          totalStudents / totalCourses
+        ).toFixed(1)
+      )
       : 0;
 
   const averageRevenuePerCourse =
     totalCourses > 0
       ? Number(
-          (
-            totalRevenue / totalCourses
-          ).toFixed(2)
-        )
+        (
+          totalRevenue / totalCourses
+        ).toFixed(2)
+      )
       : 0;
 
   return {
@@ -188,27 +188,76 @@ export const formatCourseDashboardData = (
 };
 
 
-export const getInstructorDashboardData = async (
-  instructorId
-) => {
-  const courses =
-    await fetchInstructorCourses(
-      instructorId
-    );
 
-  const statistics =
-    calculateInstructorStatistics(
-      courses
-    );
+export const getInstructorDashboardData =
+  async (
+    instructorId,
+    {
+      topCourses = true,
+      recentCourses = false,
+      monthlyRevenue = false,
+      monthlyEnrollments = false,
+      courseStatistics = false,
+      completionStatistics = false,
+      page = 1,   
+    limit = 10, 
+    } = {}
+  ) => {
+    const courses =
+      await fetchInstructorCourses(
+        instructorId
+      );
 
-  return {
-    statistics,
-    courses,
-    topCourses: getTopCourses(courses),
-    recentCourses:
-      getRecentCourses(courses),
+    const statistics =
+      calculateInstructorStatistics(
+        courses
+      );
+
+    const result = {
+      courses,
+      statistics,
+    };
+
+    if (topCourses) {
+      result.topCourses =
+        getTopCourses(courses);
+    }
+
+    if (recentCourses) {
+      result.recentCourses =
+        getRecentCourses(courses);
+    }
+
+    if (monthlyRevenue) {
+      result.monthlyRevenue =
+        getMonthlyRevenueData(courses);
+    }
+
+    if (monthlyEnrollments) {
+      result.monthlyEnrollments =
+        getMonthlyEnrollmentsData(
+          courses
+        );
+    }
+
+if (courseStatistics) {
+  
+    result.courseStatistics = getCourseStatisticsData(courses, page, limit);
+  }
+
+    if (
+      completionStatistics
+    ) {
+      result.completionStatistics =
+        await getCourseCompletionStatistics(
+          courses
+        );
+    }
+
+    return result;
   };
-};
+
+
 
 
 
@@ -240,37 +289,43 @@ export const getRecentCourses = (
 };
 
 
-export const getCourseStatisticsData = (
-  courses
-) => {
-  return courses.map((course) => ({
+export const getCourseStatisticsData = (courses, page = 1, limit = 10) => {
+  
+  // 1. Map the raw database courses to your dashboard structure first
+  const statistics = courses.map((course) => ({
     courseId: course._id,
-
     courseName: course.courseName,
-
     thumbnail: course.thumbnail,
-
     status: course.status,
-
     price: course.price,
-
-    totalStudents:
-      course.studentsEnrolled.length,
-
-    totalRevenue:
-      calculateCourseRevenue(course),
-
-    averageRating:
-      course.averageRating,
-
-    totalRatings:
-      course.totalRatings,
-
-    createdAt:
-      course.createdAt,
+    totalStudents: course.studentsEnrolled.length,
+    totalRevenue: calculateCourseRevenue(course),
+    averageRating: course.averageRating,
+    totalRatings: course.totalRatings,
+    createdAt: course.createdAt,
+    updatedAt: course.updatedAt,
+    whatYouWillLearn: course.whatYouWillLearn,
   }));
-};
 
+  // 2. Apply your pagination calculations
+  const startIndex = (page - 1) * limit;
+  const endIndex = startIndex + limit;
+
+  const paginatedStatistics = statistics.slice(startIndex, endIndex);
+
+  // 3. Return the grouped object with pagination metadata
+  return {
+    statistics: paginatedStatistics,
+    pagination: {
+      currentPage: page,
+      totalPages: Math.ceil(statistics.length / limit),
+      totalCourses: statistics.length,
+      limit,
+      hasNextPage: endIndex < statistics.length,
+      hasPreviousPage: page > 1,
+    },
+  };
+};
 
 export const getRecentEnrollmentsData = (
   courses,
@@ -326,15 +381,19 @@ export const getMonthlyRevenueData = (
     {};
 
   courses.forEach((course) => {
-    const month =
-      new Date(
-        course.createdAt
-      ).toLocaleString(
-        "default",
-        {
-          month: "short",
-        }
-      );
+    const revenueDate =
+  course.updatedAt ||
+  course.createdAt;
+
+const month =
+  new Date(
+    revenueDate
+  ).toLocaleString(
+    "default",
+    {
+      month: "short",
+    }
+  );
 
     const revenue =
       calculateCourseRevenue(
@@ -366,11 +425,19 @@ export const getMonthlyEnrollmentsData = (
   const monthlyEnrollments = {};
 
   courses.forEach((course) => {
-    const month = new Date(
-      course.createdAt
-    ).toLocaleString("default", {
+    const enrollmentDate =
+  course.updatedAt ||
+  course.createdAt;
+
+const month =
+  new Date(
+    enrollmentDate
+  ).toLocaleString(
+    "default",
+    {
       month: "short",
-    });
+    }
+  );
 
     monthlyEnrollments[month] =
       (monthlyEnrollments[month] || 0) +
@@ -446,22 +513,26 @@ export const getCourseCompletionStatistics =
       const completionRate =
         totalStudents > 0
           ? Number(
-              (
-                (completedStudents /
-                  totalStudents) *
-                100
-              ).toFixed(2)
-            )
+            (
+              (completedStudents /
+                totalStudents) *
+              100
+            ).toFixed(2)
+          )
           : 0;
 
-      return {
-        courseId: course._id,
-        courseName:
-          course.courseName,
-        totalStudents,
-        completedStudents,
-        completionRate,
-      };
+return {
+    courseId: course._id,
+    courseName: course.courseName,
+    thumbnail: course.thumbnail,
+    totalStudents,
+    completedStudents,
+    completionRate,
+    averageRating:
+        course.averageRating,
+    totalRatings:
+        course.totalRatings,
+};
     });
   };
 
