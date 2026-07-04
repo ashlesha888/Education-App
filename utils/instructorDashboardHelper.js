@@ -271,4 +271,93 @@ export const getCourseStatisticsData = (
   }));
 };
 
+```javascript id="4m4bxv"
+export const getRecentEnrollmentsData = (
+  courses,
+  limit = 10
+) => {
+  const enrollments = [];
+
+  courses.forEach((course) => {
+    course.studentsEnrolled.forEach(
+      (student) => {
+        enrollments.push({
+          studentId: student._id,
+
+          firstName:
+            student.firstName,
+
+          lastName:
+            student.lastName,
+
+          email:
+            student.email,
+
+          courseId:
+            course._id,
+
+          courseName:
+            course.courseName,
+
+          enrolledAt:
+            student.createdAt,
+        });
+      }
+    );
+  });
+
+  return enrollments
+    .sort(
+      (a, b) =>
+        new Date(
+          b.enrolledAt
+        ) -
+        new Date(
+          a.enrolledAt
+        )
+    )
+    .slice(0, limit);
+};
+```
+```javascript id="7i34n0"
+export const getMonthlyRevenueData = (
+  courses
+) => {
+  const monthlyRevenue =
+    {};
+
+  courses.forEach((course) => {
+    const month =
+      new Date(
+        course.createdAt
+      ).toLocaleString(
+        "default",
+        {
+          month: "short",
+        }
+      );
+
+    const revenue =
+      calculateCourseRevenue(
+        course
+      );
+
+    monthlyRevenue[
+      month
+    ] =
+      (monthlyRevenue[
+        month
+      ] || 0) + revenue;
+  });
+
+  return Object.entries(
+    monthlyRevenue
+  ).map(
+    ([month, revenue]) => ({
+      month,
+      revenue,
+    })
+  );
+};
+```
 
