@@ -1,6 +1,6 @@
 import User from "../models/User.js";
 import CourseProgress from "../models/CourseProgress.js";
-//next step with code please
+
 export const fetchPurchasedCourses = async (
   studentId
 ) => {
