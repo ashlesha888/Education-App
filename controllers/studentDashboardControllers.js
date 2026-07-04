@@ -163,3 +163,45 @@ export const getContinueWatching =async (req, res) => {
     }
   };
 
+javascript
+export const getRecentlyCompletedCourses =async (req, res) => {
+    try {
+      const studentId =
+        req.user.id;
+
+      const {
+        recentlyCompleted,
+      } =
+        await getStudentDashboardData(
+          studentId,
+          {
+            recentlyCompleted: true,
+          }
+        );
+
+      return res.status(200).json({
+        success: true,
+        message:
+          "Recently completed courses fetched successfully",
+
+        count:
+          recentlyCompleted.length,
+
+        data:
+          recentlyCompleted,
+      });
+
+    } catch (error) {
+      console.error(error);
+
+      return res.status(
+        error.statusCode || 500
+      ).json({
+        success: false,
+        message:
+          error.message ||
+          "Internal Server Error",
+      });
+    }
+  };
+
