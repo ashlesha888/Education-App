@@ -151,7 +151,10 @@ export const getDashboardSummaryData = (
 };
 
 export const getContinueWatchingData = (
-  courseProgress
+  courseProgress,
+  {
+    limit = null,
+  } = {}
 ) => {
   return courseProgress
     .filter(
@@ -193,12 +196,16 @@ const progressPercentage =
 };
     })
     .sort(
-      (a, b) =>
-        new Date(
-          b.updatedAt
-        ) -
-        new Date(a.updatedAt)
-    );
+  (a, b) =>
+    new Date(
+      b.updatedAt
+    ) -
+    new Date(a.updatedAt)
+)
+.slice(
+  0,
+  limit || undefined
+);
 };
 
 export const getRecentlyCompletedData = (
@@ -470,9 +477,31 @@ const formatLearningTime = (
 };
 
 const getPurchasedCoursesData = (
-  courseProgress
+  courseProgress,
+  {
+    sort = "latest",
+  } = {}
 ) => {
-  return courseProgress.map(
+  let courses = [...courseProgress];
+
+switch (sort) {
+  case "oldest":
+    courses.sort(
+      (a, b) =>
+        new Date(a.createdAt) -
+        new Date(b.createdAt)
+    );
+    break;
+
+  case "latest":
+  default:
+    courses.sort(
+      (a, b) =>
+        new Date(b.createdAt) -
+        new Date(a.createdAt)
+    );
+}
+  return courses.map(
     (progress) => ({
       ...formatCourseCard(
         progress.courseId

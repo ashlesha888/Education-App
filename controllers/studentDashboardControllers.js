@@ -3,8 +3,7 @@ import {
   getStudentDashboardData,
 } from "../utils/studentDashboardHelper.js";
 
-export const getStudentDashboard =
-  async (req, res) => {
+export const getStudentDashboard =async (req, res) => {
     try {
       const studentId =
         req.user.id;
@@ -44,8 +43,7 @@ export const getStudentDashboard =
   };
 
 javascript
-export const getDashboardSummary =
-  async (req, res) => {
+export const getDashboardSummary =async (req, res) => {
     try {
       const studentId =
         req.user.id;
@@ -65,6 +63,90 @@ export const getDashboardSummary =
         message:
           "Dashboard summary fetched successfully",
         data: statistics,
+      });
+
+    } catch (error) {
+      console.error(error);
+
+      return res.status(
+        error.statusCode || 500
+      ).json({
+        success: false,
+        message:
+          error.message ||
+          "Internal Server Error",
+      });
+    }
+  };
+
+javascript
+export const getPurchasedCourses =async (req, res) => {
+    try {
+      const studentId =
+        req.user.id;
+
+      const {
+        purchasedCourses,
+      } =
+        await getStudentDashboardData(
+          studentId,
+          {
+            purchasedCourses: true,
+          }
+        );
+
+      return res.status(200).json({
+        success: true,
+        message:
+          "Purchased courses fetched successfully",
+
+        count:
+          purchasedCourses.length,
+
+        data:
+          purchasedCourses,
+      });
+
+    } catch (error) {
+      console.error(error);
+
+      return res.status(
+        error.statusCode || 500
+      ).json({
+        success: false,
+        message:
+          error.message ||
+          "Internal Server Error",
+      });
+    }
+  };
+
+javascript
+export const getContinueWatching =async (req, res) => {
+    try {
+      const studentId =
+        req.user.id;
+
+      const {
+        continueWatching,
+      } =
+        await getStudentDashboardData(
+          studentId,
+          {
+            continueWatching: true,
+          }
+        );
+
+      return res.status(200).json({
+        success: true,
+        message:
+          "Continue watching courses fetched successfully",
+
+        count:
+          continueWatching.length,
+
+        data:
+          continueWatching,
       });
 
     } catch (error) {
