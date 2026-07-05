@@ -1,2 +1,36 @@
 export const MINIMUM_PROGRESS_FOR_REVIEW = 20;
 export const MINIMUM_RATINGS_FOR_TOP_COURSE = 5;
+export const COURSE_STATUS = {
+  DRAFT: "Draft",
+  PUBLISHED:
+    "Published",
+};
+
+export const SEARCH_SORT = {
+  LATEST: "latest",
+
+  OLDEST: "oldest",
+
+  RATING: "rating",
+
+  POPULARITY:
+    "popularity",
+
+  PRICE_ASC:
+    "priceAsc",
+
+  PRICE_DESC:
+    "priceDesc",
+
+  ALPHABETICAL:
+    "alphabetical",
+
+  DURATION:
+    "duration",
+};
+
+export const SEARCH_PAGINATION = {
+  DEFAULT_PAGE: 1,
+  DEFAULT_LIMIT: 10,
+  MAX_LIMIT: 100,
+};

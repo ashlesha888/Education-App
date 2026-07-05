@@ -560,63 +560,86 @@ export const getCoursesByInstructor = async (req, res) => {
   }
 };
 
-export const searchCourses = async (req, res) => {
-  try {
-    const { query } = req.query;
+export const searchCourses = async (
+  queryParams
+) => {
+  const courseQuery =
+    buildCourseQuery(
+      queryParams
+    );
 
-    if (!query) {
-      return res.status(400).json({
-        success: false,
-        message: "Search query is required",
-      });
-    }
+  if (
+  queryParams.published !==
+  undefined
+) {
+  courseQuery.status =
+    queryParams.published ===
+    "true"
+      ? COURSE_STATUS.PUBLISHED
+      : COURSE_STATUS.DRAFT;
+} else {
+  courseQuery.status =
+    COURSE_STATUS.PUBLISHED;
+}
 
-    const courses = await Course.find({
-      status: "Published",
-      $or: [
-        {
-          courseName: {
-            $regex: query,
-            $options: "i",
-          },
-        },
-        {
-          courseDescription: {
-            $regex: query,
-            $options: "i",
-          },
-        },
-        {
-          whatYouWillLearn: {
-            $regex: query,
-            $options: "i",
-          },
-        },
-      ],
-    })
-      .populate({
-        path: "instructor",
-        select: "firstName lastName profileImage",
-      })
-      .populate({
-        path: "tag",
-        select: "name",
-      });
+  const sort =
+    buildSortQuery(
+      queryParams.sort
+    );
 
-    return res.status(200).json({
-      success: true,
-      count: courses.length,
-      data: courses,
-      message: "Courses fetched successfully",
-    });
-  } catch (error) {
-    console.error(error);
+  const pagination =
+    buildPaginationQuery(
+      queryParams.page,
+      queryParams.limit
+    );
 
-    return res.status(500).json({
-      success: false,
-      message: "Failed to search courses",
-    });
-  }
+  const courses =
+    await Course.find(courseQuery)
+      .populate(
+        "instructor",
+        "firstName lastName profileImage"
+      )
+      .populate(
+        "category",
+        "name"
+      )
+      .populate(
+        "tags",
+        "name"
+      )
+      .sort(sort)
+      .skip(
+        pagination.skip
+      )
+      .limit(
+        pagination.limit
+      )
+      .lean();
+
+  const totalCourses =
+    await Course.countDocuments(
+      courseQuery
+    );
+
+  return {
+    courses,
+
+    pagination: {
+      page:
+        pagination.page,
+
+      limit:
+        pagination.limit,
+
+      totalCourses,
+
+      totalPages:
+        Math.ceil(
+          totalCourses /
+          pagination.limit
+        ),
+    },
+  };
 };
 
 export const filterCoursesByCategory = async (req, res) => {

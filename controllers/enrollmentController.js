@@ -57,8 +57,11 @@ export const enrollStudent = async (req, res) => {
             });
         }
 
-        course.studentsEnrolled.push(studentId);
-        await course.save();
+course.studentsEnrolled.push(studentId);
+
+course.totalStudentsEnrolled += 1;
+
+await course.save();
 
         await User.findByIdAndUpdate(
             studentId,
@@ -141,11 +144,17 @@ export const removeEnrollment = async (req, res) => {
             });
         }
 
-        await Course.findByIdAndUpdate(courseId, {
-            $pull: {
-                studentsEnrolled: studentId,
-            },
-        });
+       await Course.findByIdAndUpdate(
+    courseId,
+    {
+        $pull: {
+            studentsEnrolled: studentId,
+        },
+        $inc: {
+            totalStudentsEnrolled: -1,
+        },
+    }
+);
 
         await User.findByIdAndUpdate(studentId, {
             $pull: {
@@ -330,7 +339,8 @@ export const getCourseStudents = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      totalStudents: course.studentsEnrolled.length,
+      totalStudents:
+course.totalStudentsEnrolled,
       data: course.studentsEnrolled,
       message: "Students fetched successfully",
     });
@@ -356,10 +366,11 @@ export const getEnrollmentCount = async (req, res) => {
       });
     }
 
-    const course = await Course.findById(courseId).select(
-      "courseName studentsEnrolled"
-    );
-
+    const course =
+await Course.findById(courseId)
+.select(
+    "courseName totalStudentsEnrolled"
+);
     if (!course) {
       return res.status(404).json({
         success: false,
@@ -371,7 +382,8 @@ export const getEnrollmentCount = async (req, res) => {
       success: true,
       courseId: course._id,
       courseName: course.courseName,
-      enrollmentCount: course.studentsEnrolled.length,
+      enrollmentCount:
+course.totalStudentsEnrolled,
       message: "Enrollment count fetched successfully",
     });
 

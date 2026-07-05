@@ -90,6 +90,14 @@ totalRatings: {
       ],
       default: [],
     },
+    totalStudentsEnrolled: {
+    type: Number,
+    default: 0,
+},
+totalDuration: {
+    type: Number,
+    default: 0,
+},
   },
   {
     timestamps: true,
