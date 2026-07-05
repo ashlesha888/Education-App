@@ -34,3 +34,9 @@ export const SEARCH_PAGINATION = {
   DEFAULT_LIMIT: 10,
   MAX_LIMIT: 100,
 };
+
+export const ACCOUNT_TYPE = {
+  STUDENT: "Student",
+  INSTRUCTOR: "Instructor",
+  ADMIN: "Admin",
+};
