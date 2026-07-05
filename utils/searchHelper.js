@@ -757,8 +757,7 @@ export const searchInstructors =async (queryParams) => {
     };
 };
 
-export const validateInstructorSearch =
-  (query) => {
+export const validateInstructorSearch = (query) => {
     validatePagination(
       query.page,
       query.limit
@@ -768,3 +767,70 @@ export const validateInstructorSearch =
       query.search
     );
   };
+
+  export const searchCategories = async (queryParams) => {
+  const { search, page, limit } = queryParams;
+  const pagination = buildPaginationQuery(page, limit);
+  const filter = {};
+
+  if (search && search.trim()) {
+    filter.$or = [
+      { name: { $regex: search.trim(), $options: "i" } },
+      { description: { $regex: search.trim(), $options: "i" } },
+    ];
+  }
+
+  const categories = await Category.find(filter)
+    .select("name description courses totalCourses")
+    .sort({ name: 1 })
+    .skip(pagination.skip)
+    .limit(pagination.limit)
+    .lean();
+
+  const totalCategories = await Category.countDocuments(filter);
+  const formattedCategories = categories.map(formatCategory);
+
+  return {
+    categories: formattedCategories,
+    pagination: {
+      page: pagination.page,
+      limit: pagination.limit,
+      totalCategories,
+      totalPages: Math.ceil(totalCategories / pagination.limit),
+    },
+  };
+};
+
+export const formatCategory =(category) => ({
+  _id:
+    category._id,
+
+  name:
+    category.name,
+
+  description:
+    category.description,
+
+  totalCourses:
+    category.totalCourses ??
+    category.courses
+      ?.length ??
+    0,
+});
+
+export const validateCategorySearch =(query) => {
+    validatePagination(
+      query.page,
+      query.limit
+    );
+
+    if (query.search) {
+      validateKeyword(
+        query.search
+      );
+    }
+  };
+
+
+
+  

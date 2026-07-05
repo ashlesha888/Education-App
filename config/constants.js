@@ -48,3 +48,20 @@ export const SEARCH_PAGINATION = {
 
   SUGGESTION_LIMIT: 10,
 };
+
+export const SEARCH_MESSAGES = {
+  COURSES_FETCHED:
+    "Courses fetched successfully.",
+
+  INSTRUCTORS_FETCHED:
+    "Instructors fetched successfully.",
+
+  CATEGORIES_FETCHED:
+    "Categories fetched successfully.",
+
+  GLOBAL_SEARCH:
+    "Global search completed successfully.",
+
+  SEARCH_SUGGESTIONS:
+    "Search suggestions fetched successfully.",
+};

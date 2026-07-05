@@ -3,6 +3,7 @@ import express from "express";
 import {
   searchCoursesController,
   searchInstructorsController,
+  searchCategoriesController,
   globalSearchController,
   getSearchSuggestionsController,
 } from "../controllers/searchController.js";
@@ -28,6 +29,11 @@ router.get(
 router.get(
   "/instructors",
   searchInstructorsController
+);
+
+router.get(
+  "/categories",
+  searchCategoriesController
 );
 
 
