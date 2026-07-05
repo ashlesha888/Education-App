@@ -9,17 +9,18 @@ export const buildCourseQuery = (
     queryParams
 ) => {
     const {
-        search,
-        category,
-        tag,
-        instructor,
-        language,
-        level,
-        published,
-        minPrice,
-        maxPrice,
-        minRating,
-    } = queryParams;
+  search,
+  category,
+  tag,
+  instructor,
+  language,
+  level,
+  minPrice,
+  maxPrice,
+  minRating,
+  minDuration,
+  maxDuration,
+} = queryParams;
 
     const query = {};
 
@@ -101,6 +102,22 @@ export const buildCourseQuery = (
             ),
         };
     }
+    if (
+  minDuration ||
+  maxDuration
+) {
+  courseQuery.totalDuration = {};
+
+  if (minDuration) {
+    courseQuery.totalDuration.$gte =
+      Number(minDuration);
+  }
+
+  if (maxDuration) {
+    courseQuery.totalDuration.$lte =
+      Number(maxDuration);
+  }
+}
 
     return query;
 };
@@ -299,7 +316,11 @@ export const validateSearchQuery = (
         query.minPrice,
         query.maxPrice
     );
-
+validateDuration(
+  query.minDuration,
+  query.maxDuration
+  
+);
     validateRating(
         query.minRating
     );
@@ -831,6 +852,32 @@ export const validateCategorySearch =(query) => {
     }
   };
 
+export const validateDuration = (minDuration, maxDuration) => {
+  const MAX_DURATION = 60 * 60 * 100;
 
+  if (minDuration && isNaN(minDuration)) {
+    const error = new Error("Minimum duration must be a number.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (maxDuration && isNaN(maxDuration)) {
+    const error = new Error("Maximum duration must be a number.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (maxDuration && Number(maxDuration) > MAX_DURATION) {
+    const error = new Error("Duration exceeds allowed limit.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (minDuration && maxDuration && Number(minDuration) > Number(maxDuration)) {
+    const error = new Error("Minimum duration cannot be greater than maximum duration.");
+    error.statusCode = 400;
+    throw error;
+  }
+};
 
   
