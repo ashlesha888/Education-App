@@ -40,3 +40,11 @@ export const ACCOUNT_TYPE = {
   INSTRUCTOR: "Instructor",
   ADMIN: "Admin",
 };
+
+export const SEARCH_PAGINATION = {
+  DEFAULT_PAGE: 1,
+  DEFAULT_LIMIT: 10,
+  MAX_LIMIT: 100,
+
+  SUGGESTION_LIMIT: 10,
+};

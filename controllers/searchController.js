@@ -1,5 +1,10 @@
-import { searchCourses, validateSearchQuery,globalSearch,
-  validateKeyword,} from "../utils/searchHelper.js";
+import {
+  searchCourses,
+  searchInstructors,
+  globalSearch,
+  getSearchSuggestions,  validateSearchQuery,
+  validateKeyword, validateInstructorSearch
+} from "../utils/searchHelper.js";
 
 export const searchCoursesController =async (req, res) => {
     try {
@@ -38,6 +43,47 @@ export const searchCoursesController =async (req, res) => {
       });
     }
 };
+
+export const searchInstructorsController =
+  async (req, res) => {
+    try {
+      validateInstructorSearch(
+  req.query
+);
+
+      const result =
+        await searchInstructors(
+          req.query
+        );
+
+      return res.status(200).json({
+        success: true,
+
+        message:
+          "Instructors fetched successfully.",
+
+        data: {
+          instructors:
+            result.instructors,
+
+          pagination:
+            result.pagination,
+        },
+      });
+    } catch (error) {
+      console.error(error);
+
+      return res.status(
+        error.statusCode || 500
+      ).json({
+        success: false,
+
+        message:
+          error.message ||
+          "Internal Server Error",
+      });
+    }
+  };
 
 export const globalSearchController =async (req, res) => {
     try {

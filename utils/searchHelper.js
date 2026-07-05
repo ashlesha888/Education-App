@@ -627,4 +627,144 @@ export const validateKeyword =
   }
 };
 
+export const getSearchSuggestions = async (search) => {
+    if (
+      !search ||
+      !search.trim()
+    ) {
+      return [];
+    }
 
+    const keyword =
+      search.trim();
+
+    const courses =
+      await Course.find({
+        status:
+          COURSE_STATUS.PUBLISHED,
+
+        courseName: {
+          $regex: keyword,
+          $options: "i",
+        },
+      })
+        .select(
+          "courseName"
+        )
+        .limit(
+  SEARCH_PAGINATION.SUGGESTION_LIMIT
+)
+        .lean();
+
+    return courses.map(
+  (course) => ({
+    _id: course._id,
+
+    title:
+      course.courseName,
+
+    type: "course",
+  })
+);
+};
+
+export const searchInstructors =async (queryParams) => {
+    const {
+      search,
+      page,
+      limit,
+    } = queryParams;
+
+    const pagination =
+      buildPaginationQuery(
+        page,
+        limit
+      );
+
+    const filter = {
+      accountType:
+        ACCOUNT_TYPE.INSTRUCTOR,
+    };
+
+    if (
+      search &&
+      search.trim()
+    ) {
+      filter.$or = [
+  {
+    firstName: {
+      $regex:
+        search.trim(),
+      $options: "i",
+    },
+  },
+  {
+    lastName: {
+      $regex:
+        search.trim(),
+      $options: "i",
+    },
+  },
+  {
+    email: {
+      $regex:
+        search.trim(),
+      $options: "i",
+    },
+  },
+];
+    }
+
+    const instructors =
+      await User.find(filter)
+  .sort({
+    firstName: 1,
+  })
+        .select(
+"firstName lastName profileImage"
+)
+        .skip(
+          pagination.skip
+        )
+        .limit(
+          pagination.limit
+        )
+        .lean();
+
+    const totalInstructors =
+      await User.countDocuments(
+        filter
+      );
+
+    return {
+      instructors,
+
+      pagination: {
+        page:
+          pagination.page,
+
+        limit:
+          pagination.limit,
+
+        totalInstructors,
+
+        totalPages:
+          Math.ceil(
+            totalInstructors /
+            pagination.limit
+          ),
+      },
+    };
+};
+
+export const validateInstructorSearch =
+  (query) => {
+    validatePagination(
+      query.page,
+      query.limit
+    );
+
+    validateKeyword(
+      query.search
+    );
+  };
