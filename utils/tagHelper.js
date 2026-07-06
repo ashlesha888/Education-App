@@ -200,11 +200,7 @@ export const escapeRegex = (text) =>
     /[.*+?^${}()|[\]\\]/g,
     "\\$&"
  );
-
-
- /**
- * Creates a new tag
- */
+ 
 export const createTag = async ({
   name,
   description,
@@ -224,12 +220,8 @@ export const createTag = async ({
 
   return formatTag(tag);
 };
-
-/**
- * Finds a tag by ID
- */
-export const findTagById =
-  async (tagId) => {
+ 
+export const findTagById =async (tagId) => {
     const tag =
       await Tag.findById(
         tagId
@@ -240,11 +232,8 @@ export const findTagById =
       : null;
   };
 
-  /**
- * Formats a tag response
- */
-export const formatTag =
-  (tag) => ({
+ 
+export const formatTag = (tag) => ({
     _id: tag._id,
 
     name: tag.name,
@@ -262,8 +251,84 @@ export const formatTag =
       tag.updatedAt,
   });
 
-export const formatTags =
-  (tags) =>
+export const formatTags = (tags) =>
     tags.map(
       formatTag
-    );
+);
+
+ 
+export const getAllTags = async ({
+    page = 1,
+    limit = 10,
+    search = "",
+  } = {}) => {
+
+    const pagination =
+buildPaginationQuery(
+page,
+limit
+);
+
+    const filter = {};
+
+    if (
+      search &&
+      search.trim()
+    ) {
+     filter.$or = [
+  {
+    name: {
+      $regex:
+        search.trim(),
+      $options: "i",
+    },
+  },
+  {
+    description: {
+      $regex:
+        search.trim(),
+      $options: "i",
+    },
+  },
+];
+    }
+
+    const tags =
+      await Tag.find(filter)
+        .sort({
+usageCount:-1,
+name:1,
+})
+        .skip(
+pagination.skip
+)
+.limit(
+pagination.limit
+)
+        .lean();
+
+    const totalTags =
+      await Tag.countDocuments(
+        filter
+      );
+
+    return {
+      tags:
+        formatTags(tags),
+
+      pagination: {
+        page,
+
+        limit,
+
+        totalTags,
+
+        totalPages:
+          Math.ceil(
+            totalTags /
+            limit
+          ),
+      },
+    };
+};
+

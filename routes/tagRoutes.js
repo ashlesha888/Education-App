@@ -10,7 +10,7 @@ const router =
   express.Router();
 
 router.post(
-  "/",
+  "/create-tag",
   protect,
   isAdmin,
   createTagController
