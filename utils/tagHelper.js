@@ -366,3 +366,67 @@ export const getTagById = async (tagId) => {
 
     return formatTag(tag);
 };
+
+
+export const validateGetTagById = (tagId) => {
+    validateObjectId(
+        tagId
+    );
+};
+
+/**
+ * Update Tag
+ */
+export const updateTag = async (
+    tagId,
+    {
+      name,
+      description,
+    }
+  ) => {
+    const updatedTag =
+      await Tag.findByIdAndUpdate(
+        tagId,
+        {
+          $set: {
+            ...(name !==
+undefined && {
+              name: name
+                .trim()
+                .replace(
+                  /\s+/g,
+                  " "
+                ),
+            }),
+
+            ...(description !==
+undefined && {
+              description:
+                description.trim(),
+            }),
+          },
+        },
+        {
+          new: true,
+          runValidators: true,
+        }
+      ).select(
+"name description usageCount createdAt updatedAt"
+)
+.lean();
+
+    if (!updatedTag) {
+      const error =
+        new Error(
+          TAG_MESSAGES.NOT_FOUND
+        );
+
+      error.statusCode = 404;
+
+      throw error;
+    }
+
+    return formatTag(
+      updatedTag
+    );
+};
