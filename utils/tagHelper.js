@@ -14,7 +14,7 @@ export const validateCreateTag = async ({
     validateTagDescription(description);
 
     await checkDuplicateTag(name);
-  };
+};
 
 
 export const validateUpdateTag = async (
@@ -40,12 +40,12 @@ export const validateUpdateTag = async (
         description
       );
     }
-  };
+};
 
 
 export const validateDeleteTag = (tagId) => {
     validateObjectId(tagId);
-  };
+};
 
 export const validateTagName = (name) => {
     if (!name?.trim()) {
@@ -94,7 +94,7 @@ export const validateTagName = (name) => {
 
       throw error;
     }
-  };
+};
 
 
 export const validateTagDescription = (description) => {
@@ -141,7 +141,7 @@ export const validateTagDescription = (description) => {
 
       throw error;
     }
-  };
+};
 
 
 export const validateObjectId = (id) => {
@@ -159,7 +159,7 @@ export const validateObjectId = (id) => {
 
       throw error;
     }
-  };
+};
 
 
 export const checkDuplicateTag = async (
@@ -171,12 +171,12 @@ export const checkDuplicateTag = async (
         `^${name.trim()}$`,
         "i"
       ),
-    };
+};
 
     if (excludeId) {
       filter._id = {
         $ne: excludeId,
-      };
+    };
     }
 
     const tag =
@@ -192,11 +192,78 @@ export const checkDuplicateTag = async (
 
       throw error;
     }
-  };
+};
 
 
 export const escapeRegex = (text) =>
   text.replace(
     /[.*+?^${}()|[\]\\]/g,
     "\\$&"
-  );
+ );
+
+
+ /**
+ * Creates a new tag
+ */
+export const createTag = async ({
+  name,
+  description,
+}) => {
+  const tag =
+    await Tag.create({
+      name: name
+        .trim()
+        .replace(
+          /\s+/g,
+          " "
+        ),
+
+      description:
+        description.trim(),
+    });
+
+  return formatTag(tag);
+};
+
+/**
+ * Finds a tag by ID
+ */
+export const findTagById =
+  async (tagId) => {
+    const tag =
+      await Tag.findById(
+        tagId
+      ).lean();
+
+    return tag
+      ? formatTag(tag)
+      : null;
+  };
+
+  /**
+ * Formats a tag response
+ */
+export const formatTag =
+  (tag) => ({
+    _id: tag._id,
+
+    name: tag.name,
+
+    description:
+      tag.description,
+
+    usageCount:
+      tag.usageCount ?? 0,
+
+    createdAt:
+      tag.createdAt,
+
+    updatedAt:
+      tag.updatedAt,
+  });
+
+export const formatTags =
+  (tags) =>
+    tags.map(
+      formatTag
+    );
