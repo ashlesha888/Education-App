@@ -65,3 +65,34 @@ export const SEARCH_MESSAGES = {
   SEARCH_SUGGESTIONS:
     "Search suggestions fetched successfully.",
 };
+
+export const TAG_LIMITS = {
+  MIN_NAME_LENGTH: 2,
+  MAX_NAME_LENGTH: 50,
+
+  MIN_DESCRIPTION_LENGTH: 10,
+  MAX_DESCRIPTION_LENGTH: 300,
+};
+
+export const TAG_MESSAGES = {
+  CREATED:
+    "Tag created successfully.",
+
+  UPDATED:
+    "Tag updated successfully.",
+
+  DELETED:
+    "Tag deleted successfully.",
+
+  FETCHED:
+    "Tag fetched successfully.",
+
+  FETCHED_ALL:
+    "Tags fetched successfully.",
+
+  ALREADY_EXISTS:
+    "Tag already exists.",
+
+  NOT_FOUND:
+    "Tag not found.",
+};
