@@ -2,6 +2,7 @@ import express from "express";
 
 import {
   createTagController,
+  getAllTagsController,
 } from "../controllers/tagController.js";
 
 import { protect, isAdmin} from "../middlewares/auth.js";
@@ -15,5 +16,8 @@ router.post(
   isAdmin,
   createTagController
 );
-
+router.get(
+  "/get-all-tag",
+  getAllTagsController
+);
 export default router;
