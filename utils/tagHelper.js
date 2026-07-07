@@ -724,3 +724,11 @@ export const getPopularTags = async (limit = 10) => {
     .select("name usageCount")
     .lean();
 };
+
+export const validatePopularTags =(query) => {
+
+  validatePagination(
+    query
+  );
+
+};
