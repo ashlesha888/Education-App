@@ -108,3 +108,21 @@ export const FILE_LIMITS = {
   DOCUMENT:
     10 * 1024 * 1024,
 };
+
+export const UPLOAD_TYPES = {
+
+  IMAGE: {
+    fileSize:
+      FILE_LIMITS.IMAGE,
+  },
+
+  VIDEO: {
+    fileSize:
+      FILE_LIMITS.VIDEO,
+  },
+
+  DOCUMENT: {
+    fileSize:
+      FILE_LIMITS.DOCUMENT,
+  },
+};

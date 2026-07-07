@@ -34,17 +34,36 @@ export const createUploader = ({
   });
 };
 
-export const uploadImage = createUploader({
-fileSize:
-    FILE_LIMITS.IMAGE,
-});
-
-export const uploadVideo = createUploader({
+export const uploadImage = Object.freeze(
+  createUploader({
     fileSize:
-      FILE_LIMITS.VIDEO,
-});
+      FILE_LIMITS.IMAGE,
+  })
+);
 
-export const uploadDocument = createUploader({
-fileSize:
-    FILE_LIMITS.DOCUMENT,
-});
+export const uploadVideo =Object.freeze(
+  createUploader({fileSize:
+      FILE_LIMITS.VIDEO,
+  })
+);
+
+export const uploadDocument =Object.freeze(
+  createUploader({
+    fileSize:
+      FILE_LIMITS.DOCUMENT,
+  })
+);
+
+export const createUploader = ({
+  fileSize,
+  files = 1,
+}) => {
+  return multer({
+    storage,
+
+    limits: {
+      fileSize,
+      files,
+    },
+  });
+};
