@@ -126,3 +126,31 @@ export const UPLOAD_TYPES = {
       FILE_LIMITS.DOCUMENT,
   },
 };
+
+export const MIME_TYPES = {
+
+  IMAGE: [
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+  ],
+
+  VIDEO: [
+    "video/mp4",
+    "video/webm",
+    "video/quicktime",
+  ],
+
+  DOCUMENT: [
+    "application/pdf",
+  ],
+};
+
+export const RESOURCE_TYPES = {
+
+  IMAGE: "image",
+
+  VIDEO: "video",
+
+  AUTO: "auto",
+};
