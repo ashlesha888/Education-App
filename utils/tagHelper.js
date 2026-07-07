@@ -9,6 +9,7 @@ import {
 } from "../config/constants.js";
 import Course from "../models/Course.js";
 import Tag from "../models/Tag.js";
+import { escapeRegex } from "./searchHelper.js";
 
 export const validateCreateTag = async ({
     name,
@@ -763,4 +764,65 @@ export const getTagStatistics = async () => {
       maxUsage: 0,
     }
   );
+};
+
+export const searchTags = async (query = "", page = 1, limit = 10) => {
+  const trimmedQuery = query.trim();
+  const filter = trimmedQuery
+    ? { name: { $regex: trimmedQuery, $options: "i" } }
+    : {};
+
+  const skipIndex = (Math.max(1, Number(page)) - 1) * Math.max(1, Number(limit));
+
+  const [tags, totalTags] = await Promise.all([
+    Tag.find(filter)
+      .sort({ name: 1 })
+      .skip(skipIndex)
+      .limit(Number(limit))
+      .select("name usageCount")
+      .lean(),
+    Tag.countDocuments(filter),
+  ]);
+
+  return {
+    tags,
+    pagination: {
+      totalTags,
+      currentPage: Number(page),
+      totalPages: Math.ceil(totalTags / Number(limit)),
+    },
+  };
+};
+
+export const validateSearchKeyword =
+(
+  keyword
+) => {
+
+  if (
+    !keyword ||
+    !keyword.trim()
+  ) {
+    const error =
+      new Error(
+        "Search keyword is required."
+      );
+
+    error.statusCode = 400;
+
+    throw error;
+  }
+
+  if (
+    keyword.length > 100
+  ) {
+    const error =
+      new Error(
+        "Search keyword is too long."
+      );
+
+    error.statusCode = 400;
+
+    throw error;
+  }
 };
