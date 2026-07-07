@@ -475,3 +475,35 @@ export const getTagStatisticsController = async (req, res) => {
     });
   }
 };
+
+export const searchTagsController = async (req, res) => {
+  try {
+    const { query = "", page = 1, limit = 10 } = req.query;
+
+    if (isNaN(page) || Number(page) <= 0) {
+      const error = new Error("Page must be a positive number.");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    if (isNaN(limit) || Number(limit) <= 0) {
+      const error = new Error("Limit must be a positive number.");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const result = await searchTags(query, page, limit);
+
+    return res.status(200).json({
+      success: true,
+      message: TAG_MESSAGES.TAGS_FETCHED,
+      data: result,
+    });
+  } catch (error) {
+    logError(error);
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
+  }
+};
