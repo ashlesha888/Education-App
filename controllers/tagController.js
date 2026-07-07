@@ -9,6 +9,7 @@ import {
     removeTagFromCourse,
     replaceCourseTags,
     findExistingTag,
+    getPopularTags,
     validateCreateTag,
   validateGetAllTags,
   validateGetTagById,
@@ -299,8 +300,7 @@ req,
 /**
  * Get Courses By Tag
  */
-export const getCoursesByTagController =
-  async (req, res) => {
+export const getCoursesByTagController = async (req, res) => {
     try {
       const tagId =
         req.params.tagId?.trim();
@@ -420,6 +420,32 @@ export const replaceCourseTagsController = async (req, res) => {
       success: true,
       message: TAG_MESSAGES.COURSE_TAGS_UPDATED,
       data: { course },
+    });
+  } catch (error) {
+    logError(error);
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
+  }
+};
+
+export const getPopularTagsController = async (req, res) => {
+  try {
+    const { limit } = req.query;
+
+    if (limit && (isNaN(limit) || Number(limit) <= 0)) {
+      const error = new Error("Limit must be a positive number.");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const tags = await getPopularTags(limit);
+
+    return res.status(200).json({
+      success: true,
+      message: TAG_MESSAGES.POPULAR_TAGS_FETCHED,
+      data: { tags },
     });
   } catch (error) {
     logError(error);
