@@ -11,6 +11,7 @@ import {
   removeTagFromCourseController,
   replaceCourseTagsController,
   getPopularTagsController,
+  getTagStatisticsController,
 } from "../controllers/tagController.js";
 
 import { protect, isAdmin} from "../middlewares/auth.js";
@@ -53,6 +54,13 @@ router.patch(
 router.get(
   "/popular-tags",
   getPopularTagsController
+);
+
+router.get(
+  "/statistics",
+  protect,
+  isAdmin,
+  getTagStatisticsController
 );
 
 export default router;
