@@ -732,3 +732,35 @@ export const validatePopularTags =(query) => {
   );
 
 };
+
+export const getTagStatistics = async () => {
+  const result = await Tag.aggregate([
+    {
+      $group: {
+        _id: null,
+        totalTags: { $sum: 1 },
+        totalUsage: { $sum: "$usageCount" },
+        avgUsage: { $avg: "$usageCount" },
+        maxUsage: { $max: "$usageCount" },
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        totalTags: 1,
+        totalUsage: 1,
+        avgUsage: { $round: ["$avgUsage", 2] },
+        maxUsage: 1,
+      },
+    },
+  ]);
+
+  return (
+    result[0] || {
+      totalTags: 0,
+      totalUsage: 0,
+      avgUsage: 0,
+      maxUsage: 0,
+    }
+  );
+};
