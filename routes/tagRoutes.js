@@ -12,6 +12,7 @@ import {
   replaceCourseTagsController,
   getPopularTagsController,
   getTagStatisticsController,
+  searchTagsController,
 } from "../controllers/tagController.js";
 
 import { protect, isAdmin} from "../middlewares/auth.js";
