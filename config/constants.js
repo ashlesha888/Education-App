@@ -96,3 +96,15 @@ export const TAG_MESSAGES = {
   NOT_FOUND:
     "Tag not found.",
 };
+
+export const FILE_LIMITS = {
+
+  IMAGE:
+    5 * 1024 * 1024,
+
+  VIDEO:
+    200 * 1024 * 1024,
+
+  DOCUMENT:
+    10 * 1024 * 1024,
+};
