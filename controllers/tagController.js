@@ -1,13 +1,22 @@
 import {
     createTag,
-  getAllTags,
-  getTagById,
-  updateTag,
+    getAllTags,
+    getTagById,
+    updateTag,
+    deleteTag,
+    getCoursesByTag,
+    addTagToCourse,
+    removeTagFromCourse,
+    replaceCourseTags,
+    findExistingTag,
     validateCreateTag,
   validateGetAllTags,
   validateGetTagById,
   validateUpdateTag,
-
+  validateDeleteTag,
+  validateCourseTagMapping,
+  validateObjectId,
+  validateReplaceCourseTags,
 } from "../utils/tagHelper.js";
 
 import {
@@ -129,11 +138,12 @@ export const getAllTagsController = async (req, res) => {
 export const getTagByIdController = async (req, res) => {
     try {
         const tagId =
-  req.params.tagId?.trim();
+            req.params.tagId?.trim();
 
         validateGetTagById(
-  tagId
-);
+            tagId
+        );
+        
 
         const tag =
             await getTagById(
@@ -171,57 +181,165 @@ export const getTagByIdController = async (req, res) => {
  */
 export const updateTagController = async (req, res) => {
     try {
+        const tagId =
+            req.params.tagId?.trim();
+
+        const {
+            name,
+            description,
+        } = req.body;
+
+        const updateData = {
+            name:
+                name?.trim(),
+
+            description:
+                description?.trim(),
+        };
+        if (
+            Object.values(updateData)
+                .every(
+                    (value) =>
+                        value === undefined
+                )
+        ) {
+            const error =
+                new Error(
+                    "At least one field is required to update."
+                );
+
+            error.statusCode = 400;
+
+            throw error;
+        }
+
+        await validateUpdateTag(
+            tagId,
+            updateData
+        );
+
+        const tag =
+            await updateTag(
+                tagId,
+                updateData
+            );
+
+        return res.status(200).json({
+            success: true,
+
+            message:
+                TAG_MESSAGES.UPDATED,
+
+            data: {
+                tag,
+            },
+        });
+
+    } catch (error) {
+        logError(error);
+
+        return res.status(
+            error.statusCode || 500
+        ).json({
+            success: false,
+
+            message:
+                error.message ||
+                "Internal Server Error",
+        });
+    }
+};
+
+/**
+ * Delete Tag
+ */
+export const deleteTagController = async (req, res) => {
+    try {
+        const tagId =
+getTrimmedParam(
+req,
+"tagId"
+);
+
+        validateDeleteTag(
+            tagId
+        );
+
+        const deletedTag =
+            await deleteTag(
+                tagId
+            );
+
+        return res.status(200).json({
+            success: true,
+
+            message:
+                TAG_MESSAGES.DELETED,
+
+            data: {
+                tag: deletedTag,
+            },
+        });
+
+    } catch (error) {
+        logError(error);
+
+        return res.status(
+            error.statusCode || 500
+        ).json({
+            success: false,
+
+            message:
+                error.message ||
+                "Internal Server Error",
+        });
+    }
+};
+
+/**
+ * Get Courses By Tag
+ */
+export const getCoursesByTagController =
+  async (req, res) => {
+    try {
       const tagId =
         req.params.tagId?.trim();
 
-      const {
-        name,
-        description,
-      } = req.body;
-
-      const updateData = {
-        name:
-          name?.trim(),
-
-        description:
-          description?.trim(),
-      };
-      if (
-  Object.values(updateData)
-    .every(
-      (value) =>
-        value === undefined
-    )
-) {
-  const error =
-    new Error(
-      "At least one field is required to update."
-    );
-
-  error.statusCode = 400;
-
-  throw error;
-}
-
-      await validateUpdateTag(
-        tagId,
-        updateData
+      validateGetTagById(
+        tagId
       );
+      validateGetAllTags(
+  req.query
+);
 
-      const tag =
-        await updateTag(
+      const query = {
+        page:
+          Number(req.query.page) ||
+          1,
+
+        limit:
+          Number(req.query.limit) ||
+          10,
+      };
+
+      const result =
+        await getCoursesByTag(
           tagId,
-          updateData
+          query
         );
 
       return res.status(200).json({
         success: true,
 
         message:
-          TAG_MESSAGES.UPDATED,
+          "Courses fetched successfully.",
 
         data: {
-          tag,
+          courses:
+            result.courses,
+
+          pagination:
+            result.pagination,
         },
       });
 
@@ -238,7 +356,76 @@ export const updateTagController = async (req, res) => {
           "Internal Server Error",
       });
     }
+  };
+
+export const addTagToCourseController = async (req, res) => {
+  try {
+    const { courseId, tagId } = req.body;
+
+    validateCourseTagMapping({ courseId, tagId });
+
+    await findExistingTag(tagId);
+    const course = await addTagToCourse(courseId, tagId);
+
+    return res.status(200).json({
+      success: true,
+      message: TAG_MESSAGES.TAG_ADDED_TO_COURSE,
+      data: { course },
+    });
+  } catch (error) {
+    logError(error);
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
+  }
 };
 
+export const removeTagFromCourseController = async (req, res) => {
+  try {
+    const { courseId, tagId } = req.body;
 
+    validateCourseTagMapping({ courseId, tagId });
 
+    const course = await removeTagFromCourse(courseId, tagId);
+
+    return res.status(200).json({
+      success: true,
+      message: TAG_MESSAGES.TAG_REMOVED_FROM_COURSE,
+      data: { course },
+    });
+  } catch (error) {
+    logError(error);
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
+  }
+};
+
+export const replaceCourseTagsController = async (req, res) => {
+  try {
+    const { courseId, tagIds } = req.body;
+
+    validateObjectId(courseId);
+    if (!Array.isArray(tagIds)) {
+      const error = new Error("Tag IDs must be an array.");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const course = await replaceCourseTags(courseId, tagIds);
+
+    return res.status(200).json({
+      success: true,
+      message: TAG_MESSAGES.COURSE_TAGS_UPDATED,
+      data: { course },
+    });
+  } catch (error) {
+    logError(error);
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
+  }
+};

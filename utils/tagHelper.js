@@ -7,7 +7,8 @@ import {
     TAG_LIMITS,
     TAG_MESSAGES,
 } from "../config/constants.js";
-
+import Course from "../models/Course.js";
+import Tag from "../models/Tag.js";
 
 export const validateCreateTag = async ({
     name,
@@ -343,7 +344,7 @@ export const validateGetAllTags = (query) => {
     );
 };
 
- 
+
 export const getTagById = async (tagId) => {
     const tag =
         await Tag.findById(
@@ -374,59 +375,352 @@ export const validateGetTagById = (tagId) => {
     );
 };
 
-/**
- * Update Tag
- */
 export const updateTag = async (
     tagId,
     {
-      name,
-      description,
+        name,
+        description,
     }
-  ) => {
+) => {
     const updatedTag =
-      await Tag.findByIdAndUpdate(
-        tagId,
-        {
-          $set: {
-            ...(name !==
-undefined && {
-              name: name
-                .trim()
-                .replace(
-                  /\s+/g,
-                  " "
-                ),
-            }),
+        await Tag.findByIdAndUpdate(
+            tagId,
+            {
+                $set: {
+                    ...(name !==
+                        undefined && {
+                        name: name
+                            .trim()
+                            .replace(
+                                /\s+/g,
+                                " "
+                            ),
+                    }),
 
-            ...(description !==
-undefined && {
-              description:
-                description.trim(),
-            }),
-          },
-        },
-        {
-          new: true,
-          runValidators: true,
-        }
-      ).select(
-"name description usageCount createdAt updatedAt"
-)
-.lean();
+                    ...(description !==
+                        undefined && {
+                        description:
+                            description.trim(),
+                    }),
+                },
+            },
+            {
+                new: true,
+                runValidators: true,
+            }
+        ).select(
+            "name description usageCount createdAt updatedAt"
+        )
+            .lean();
 
     if (!updatedTag) {
-      const error =
-        new Error(
-          TAG_MESSAGES.NOT_FOUND
-        );
+        const error =
+            new Error(
+                TAG_MESSAGES.NOT_FOUND
+            );
 
-      error.statusCode = 404;
+        error.statusCode = 404;
 
-      throw error;
+        throw error;
     }
 
     return formatTag(
-      updatedTag
+        updatedTag
     );
+};
+
+export const deleteTag = async (tagId) => {
+
+    const tag =
+        await Tag.findById(
+            tagId
+        );
+
+    if (!tag) {
+        const error =
+            new Error(
+                TAG_MESSAGES.NOT_FOUND
+            );
+
+        error.statusCode = 404;
+
+        throw error;
+    }
+
+
+    if (
+        await isTagUsed(tagId)
+    ) {
+        const error =
+            new Error(
+                "Cannot delete tag because it is assigned to one or more courses."
+            );
+
+        error.statusCode = 400;
+
+        throw error;
+    }
+    const deletedTag =
+        formatTag(tag);
+
+    await tag.deleteOne();
+
+    return deletedTag;
+};
+
+
+export const isTagUsed = async (tagId) => {
+    return await Course.exists({ tags: tagId, });
+};
+
+export const getTrimmedParam = (req, key) => req.params[key]?.trim();
+
+
+export const getCoursesByTag = async (
+    tagId,
+    {
+        page = 1,
+        limit = 10,
+    } = {}
+) => {
+
+    const pagination =
+        buildPaginationQuery(
+            page,
+            limit
+        );
+    const filter = {
+        tags: tagId,
+        status:
+        COURSE_STATUS.PUBLISHED,
+    };
+
+    const courses =
+        Course.find(filter)
+            .populate({
+                path: "instructor",
+                select:
+                    "firstName lastName profileImage",
+            })
+            .populate({
+                path: "category",
+                select: "name",
+            })
+            .populate({
+                path: "tags",
+                select: "name",
+            })
+            .sort({
+                averageRating:-1,
+                totalStudentsEnrolled:-1,
+                createdAt:-1,
+            })
+            .skip(
+                pagination.skip
+            )
+            .limit(
+                pagination.limit
+            )
+            .lean();
+
+    const totalCourses =
+        Course.countDocuments(filter);
+
+    return {
+        courses,
+
+        pagination: {
+            page:
+                pagination.page,
+
+            limit:
+                pagination.limit,
+
+            totalCourses,
+
+            totalPages:
+                Math.ceil(
+                    totalCourses /
+                    pagination.limit
+                ),
+        },
+    };
+};
+
+export const findExistingTag = async (tagId) => {
+  const tag = await Tag.findById(tagId);
+  if (!tag) {
+    const error = new Error(TAG_MESSAGES.NOT_FOUND);
+    error.statusCode = 404;
+    throw error;
+  }
+  return tag;
+};
+
+export const addTagToCourse = async (courseId, tagId) => {
+  const course = await Course.findById(courseId);
+  if (!course) {
+    const error = new Error("Course not found.");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  await findExistingTag(tagId);
+
+  if (course.tags.some((id) => id.toString() === tagId.toString())) {
+    return formatCourseCard(course);
+  }
+
+  course.tags.push(tagId);
+  await course.save();
+
+  await Tag.findByIdAndUpdate(tagId, {
+    $inc: { usageCount: 1 },
+  });
+
+  return formatCourseCard(course);
+};
+
+export const validateCourseTagMapping =
+({
+  courseId,
+  tagId,
+}) => {
+
+  validateObjectId(
+    courseId
+  );
+
+  validateObjectId(
+    tagId
+  );
+};
+
+export const findExistingCourse = async (courseId) => {
+
+  const course =
+    await Course.findById(
+      courseId
+    );
+
+  if (!course) {
+    const error =
+      new Error(
+        "Course not found."
+      );
+
+    error.statusCode = 404;
+
+    throw error;
+  }
+
+  return course;
+};
+
+export const removeTagFromCourse = async (courseId, tagId) => {
+  const course = await findExistingCourse(courseId);
+  await findExistingTag(tagId);
+
+  if (!isTagAssignedToCourse(course, tagId)) {
+    const error = new Error("Tag is not assigned to this course.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  course.tags = removeTagId(course.tags, tagId);
+  await course.save();
+
+  const tag = await Tag.findById(tagId);
+  if (tag && tag.usageCount > 0) {
+    tag.usageCount--;
+    await tag.save();
+  }
+
+  return formatCourseCard(course);
+};
+
+export const isTagAssignedToCourse =
+(
+  course,
+  tagId
+) => {
+
+  return course.tags.some(
+    (id) =>
+      id.toString() ===
+      tagId.toString()
+  );
+};
+
+export const removeTagId =
+(
+  tags,
+  tagId
+) => {
+
+  return tags.filter(
+    (id) =>
+      id.toString() !==
+      tagId.toString()
+  );
+};
+
+export const replaceCourseTags = async (courseId, tagIds = []) => {
+  const course = await findExistingCourse(courseId);
+
+  const uniqueTagIds = [...new Set(tagIds.map((id) => id.toString()))];
+
+  const oldTags = course.tags.map((id) => id.toString());
+
+  const tagsToRemove = oldTags.filter((id) => !uniqueTagIds.includes(id));
+  const tagsToAdd = uniqueTagIds.filter((id) => !oldTags.includes(id));
+
+  if (tagsToAdd.length > 0) {
+    await Promise.all(tagsToAdd.map((id) => findExistingTag(id)));
+  }
+
+  course.tags = uniqueTagIds;
+  await course.save();
+
+  if (tagsToRemove.length > 0) {
+    await Tag.updateMany(
+      { _id: { $in: tagsToRemove }, usageCount: { $gt: 0 } },
+      { $inc: { usageCount: -1 } }
+    );
+  }
+
+  if (tagsToAdd.length > 0) {
+    await Tag.updateMany(
+      { _id: { $in: tagsToAdd } },
+      { $inc: { usageCount: 1 } }
+    );
+  }
+
+  return formatCourseCard(course);
+};
+
+export const validateReplaceCourseTags = (courseId, tagIds) => {
+  validateObjectId(courseId);
+
+  if (!Array.isArray(tagIds)) {
+    const error = new Error("Tag IDs must be an array.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (tagIds.length === 0) {
+    const error = new Error("At least one tag ID is required.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  tagIds.forEach((id) => validateObjectId(id));
+};
+
+export const getPopularTags = async (limit = 10) => {
+  return await Tag.find({ usageCount: { $gt: 0 } })
+    .sort({ usageCount: -1, name: 1 })
+    .limit(Number(limit))
+    .select("name usageCount")
+    .lean();
 };
