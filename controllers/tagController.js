@@ -10,6 +10,7 @@ import {
     replaceCourseTags,
     findExistingTag,
     getPopularTags,
+  getTagStatistics,
     validateCreateTag,
   validateGetAllTags,
   validateGetTagById,
@@ -446,6 +447,24 @@ export const getPopularTagsController = async (req, res) => {
       success: true,
       message: TAG_MESSAGES.POPULAR_TAGS_FETCHED,
       data: { tags },
+    });
+  } catch (error) {
+    logError(error);
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
+  }
+};
+
+export const getTagStatisticsController = async (req, res) => {
+  try {
+    const stats = await getTagStatistics();
+
+    return res.status(200).json({
+      success: true,
+      message: TAG_MESSAGES.STATISTICS_FETCHED,
+      data: { stats },
     });
   } catch (error) {
     logError(error);
