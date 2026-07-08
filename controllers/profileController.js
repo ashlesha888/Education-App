@@ -2,6 +2,22 @@
 import { uploadToCloudinary } from "../utils/uploadToCloudinary.js";
 import Profile from "../models/Profile.js";
 import User from "../models/User.js";
+import {
+  uploadProfileImage,
+} from "../utils/profileHelper.js";
+
+import {
+  validateFile,
+} from "../utils/fileHelper.js";
+
+import {
+  validateObjectId,
+} from "../utils/tagHelper.js";
+
+import {
+  MIME_TYPES,
+} from "../config/constants.js";
+
 
 export const updateProfile = async (req, res) => {
   try {
@@ -186,4 +202,65 @@ export const getPublicInstructorProfile = async (req, res) => {
       message: "Unable to fetch instructor profile",
     });
   }
+};
+
+/**
+ * Upload Profile Image
+ */
+export const uploadProfileImageController =
+  async (req, res) => {
+
+    try {
+
+      const {
+        profileId,
+      } = req.body;
+
+      validateObjectId(
+        profileId
+      );
+
+      validateFile(
+        req.file,
+        MIME_TYPES.IMAGE
+      );
+
+      const result =
+        await uploadProfileImage(
+
+          profileId,
+
+          req.file
+
+        );
+
+      return res.status(200).json({
+
+        success: true,
+
+        message:
+          "Profile image uploaded successfully.",
+
+        data: result,
+
+      });
+
+    } catch (error) {
+
+      logError(error);
+
+      return res.status(
+        error.statusCode || 500
+      ).json({
+
+        success: false,
+
+        message:
+          error.message ||
+          "Internal Server Error",
+
+      });
+
+    }
+
 };

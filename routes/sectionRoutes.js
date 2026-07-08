@@ -9,7 +9,13 @@ import {
   reorderSections,
   reorderSubsections,
 } from "../controllers/sectionController.js";
+import {
+uploadLectureVideoController,
+} from "../controllers/subSectionController.js";
 
+import {
+uploadVideo,
+} from "../middlewares/uploadMiddleware.js";
 import { auth, isInstructor } from "../middlewares/auth.js";
 import upload from "../middlewares/multer.js";
 
@@ -77,4 +83,19 @@ router.put(
   reorderSubsections
 ); 
 
+router.patch(
+
+"/upload-video",
+
+protect,
+
+isInstructor,
+
+uploadVideo.single(
+FILE_FIELDS.LECTURE_VIDEO
+),
+
+uploadLectureVideoController
+
+);
 export default router;

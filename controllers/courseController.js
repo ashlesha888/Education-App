@@ -10,7 +10,9 @@ import RatingAndReview from "../models/RatingAndReview.js";
 import {
   uploadCourseThumbnail,
 } from "../utils/courseHelper.js";
-
+import {
+  deleteCourseThumbnail,
+} from "../utils/courseHelper.js";
 import {
   validateObjectId,
 } from "../utils/tagHelper.js";
@@ -758,4 +760,61 @@ if (
           "Internal Server Error",
       });
     }
-  };
+};
+
+/**
+ * Delete Course Thumbnail
+ */
+export const deleteCourseThumbnailController =
+  async (
+    req,
+    res
+  ) => {
+
+    try {
+
+      const {
+        courseId,
+      } = req.body;
+
+      validateObjectId(
+        courseId
+      );
+
+      const course =
+        await deleteCourseThumbnail(
+          courseId
+        );
+
+      return res.status(200).json({
+
+        success: true,
+
+        message:
+          "Course thumbnail deleted successfully.",
+
+        data: course,
+
+      });
+
+    } catch (error) {
+
+      logError(error);
+
+      return res.status(
+        error.statusCode || 500
+      ).json({
+
+        success: false,
+
+        message:
+          error.message ||
+          "Internal Server Error",
+
+      });
+
+    }
+
+};
+
+

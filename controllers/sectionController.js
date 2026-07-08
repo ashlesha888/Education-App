@@ -3,6 +3,84 @@ import Course from "../models/Course.js";
 import Section from "../models/Section.js";
 import Subsection from "../models/Subsection.js";
 
+
+import {
+uploadLectureVideo,
+} from "../utils/subSectionHelper.js";
+
+import {
+validateFile,
+} from "../utils/fileHelper.js";
+
+import {
+validateObjectId,
+} from "../utils/tagHelper.js";
+
+import {
+MIME_TYPES,
+} from "../config/constants.js";
+
+export const uploadLectureVideoController =
+async(req,res)=>{
+
+try{
+
+const{
+subSectionId,
+}=req.body;
+
+validateObjectId(
+subSectionId
+);
+
+validateFile(
+req.file,
+MIME_TYPES.VIDEO
+);
+
+const result =
+await uploadLectureVideo(
+
+subSectionId,
+
+req.file
+
+);
+
+return res.status(200).json({
+
+success:true,
+
+message:
+"Lecture video uploaded successfully.",
+
+data:result,
+
+});
+
+}catch(error){
+
+logError(error);
+
+return res.status(
+
+error.statusCode||500
+
+).json({
+
+success:false,
+
+message:
+error.message||
+"Internal Server Error",
+
+});
+
+}
+
+};
+
+
 export const createSection = async (req, res) => {
   try {
     const { sectionName, courseId } = req.body;
@@ -403,6 +481,7 @@ export const deleteSubsection = async (req, res) => {
     });
   }
 };
+
 
 export const reorderSections = async (req, res) => {
   try {

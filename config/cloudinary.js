@@ -38,5 +38,53 @@ export const deleteFromCloudinary = async (publicId) => {
   if (!publicId) return null;
   return await cloudinary.uploader.destroy(publicId);
 };
+ 
+export const replaceUploadedFile = async (
+  oldPublicId,
+  newFile,
+  folder,
+  resourceType = "auto"
+) => {
+
+  // Delete old file (if exists)
+  if (oldPublicId) {
+
+    await deleteFromCloudinary(
+      oldPublicId,
+      resourceType
+    );
+
+  }
+
+  // Upload new file
+  const uploadResult =
+    await uploadToCloudinary(
+
+      newFile,
+
+      folder,
+
+      resourceType
+
+    );
+
+  return uploadResult;
+};
+
+export const generateThumbnailUrl = (
+  imageUrl,
+  width = 300,
+  height = 300
+) => {
+
+  return imageUrl.replace(
+
+    "/upload/",
+
+    `/upload/w_${width},h_${height},c_fill/`
+
+  );
+
+};
 
 export default Object.freeze(cloudinary);

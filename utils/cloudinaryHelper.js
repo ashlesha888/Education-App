@@ -1,5 +1,7 @@
 import cloudinary from "../config/cloudinary.js";
-
+import {
+  compressImage,
+} from "./imageHelper.js";
 /**
  * Upload file to Cloudinary
  */
@@ -33,9 +35,25 @@ export const uploadToCloudinary = async (
             }
           );
 
-        uploadStream.end(
-          file.buffer
-        );
+        let buffer =
+  file.buffer;
+
+if (
+  resourceType ===
+  "image"
+) {
+
+  buffer =
+    await compressImage(
+      file.buffer,
+      file.mimetype
+    );
+
+}
+
+uploadStream.end(
+  buffer
+);
 
       }
     );
@@ -57,6 +75,49 @@ export const uploadToCloudinary = async (
 /**
  * Delete file from Cloudinary
  */
+
+
+/**
+ * Upload Multiple Files
+ */
+export const uploadMultipleFiles =
+async(
+
+files,
+
+folder,
+
+resourceType
+
+)=>{
+
+const uploads =
+files.map(
+
+(file)=>
+
+uploadToCloudinary(
+
+file,
+
+folder,
+
+resourceType
+
+)
+
+);
+
+const results =
+await Promise.all(
+uploads
+);
+
+return results;
+
+};
+
+
 export const deleteFromCloudinary = async (
   publicId,
   resourceType = "image"

@@ -7,19 +7,52 @@ export const createUploader = ({
   fileSize,
   files = 1,
 }) => {
-  return multer({
+
+  const uploader = multer({
+
     storage,
-    limits: {
+
+    limits:{
+
       fileSize,
+
       files,
+
     },
+
   });
+
+  return {
+
+    single:(field)=>
+      uploader.single(field),
+
+    array:(field)=>
+      uploader.array(
+        field,
+        files
+      ),
+
+    fields:(fields)=>
+      uploader.fields(fields),
+
+  };
+
 };
 
-export const uploadImage = Object.freeze(
-  createUploader({
-    fileSize: FILE_LIMITS.IMAGE,
-  })
+export const uploadImage =
+Object.freeze(
+
+createUploader({
+
+fileSize:
+FILE_LIMITS.IMAGE,
+
+files:
+FILE_UPLOAD_LIMITS.MAX_IMAGES,
+
+})
+
 );
 
 export const uploadVideo = Object.freeze(

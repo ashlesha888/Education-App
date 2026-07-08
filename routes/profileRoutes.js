@@ -5,6 +5,17 @@ import {
   getUserDetails,
 } from "../controllers/profileController.js";
 import { auth } from "../middlewares/auth.js";
+import {
+  uploadProfileImageController,
+} from "../controllers/profileController.js";
+
+import {
+  uploadImage,
+} from "../middlewares/uploadMiddleware.js";
+
+import {
+  FILE_FIELDS,
+} from "../config/constants.js";
 
 const router = express.Router();
 
@@ -22,7 +33,19 @@ router.put(
   upload.single("image"),
   updateProfilePicture
 );
+router.patch(
 
+  "/upload-profile-image",
+
+  protect,
+
+  uploadImage.single(
+    FILE_FIELDS.PROFILE_IMAGE
+  ),
+
+  uploadProfileImageController
+
+);
 router.post("/public-instructor", getPublicInstructorProfile);
 
 export default router;

@@ -11,6 +11,7 @@ import {
   searchCourses,
   getCoursesByInstructor,
   uploadCourseThumbnailController,
+  deleteCourseThumbnailController,
 } from "../controllers/courseController.js";
 import {
   uploadCourseThumbnailController,
@@ -75,6 +76,33 @@ router.post(
   FILE_FIELDS.COURSE_THUMBNAIL
 ),
   uploadCourseThumbnailController
+);
+router.delete(
+
+  "/delete-course-thumbnail",
+
+  protect,
+
+  isInstructor,
+
+  deleteCourseThumbnailController
+
+);
+
+router.post(
+
+"/upload-gallery",
+
+protect,
+
+isInstructor,
+
+uploadImage.array(
+"gallery"
+),
+
+uploadGalleryController
+
 );
 // LAST
 router.get("/:courseId", getCourseById);
