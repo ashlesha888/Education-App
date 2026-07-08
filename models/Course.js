@@ -74,6 +74,10 @@ totalRatings: {
   type: String,
   required: true,
   trim: true,
+  
+  url: String,
+  publicId: String,
+
 },
 
     tag: {

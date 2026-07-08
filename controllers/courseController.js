@@ -7,7 +7,21 @@ import User from "../models/User.js";
 import Section from "../models/Section.js";
 import Subsection from "../models/Subsection.js";
 import RatingAndReview from "../models/RatingAndReview.js";
+import {
+  uploadCourseThumbnail,
+} from "../utils/courseHelper.js";
 
+import {
+  validateObjectId,
+} from "../utils/tagHelper.js";
+
+import {
+  validateFile,
+} from "../utils/fileHelper.js";
+
+import {
+  MIME_TYPES,
+} from "../config/constants.js";
 export const createCourse = async (req, res) => {
   try {
     const {
@@ -688,3 +702,60 @@ export const filterCoursesByCategory = async (req, res) => {
     });
   }
 };
+
+export const uploadCourseThumbnailController = async (req, res) => {
+    try {
+
+      const { courseId } =
+        req.body;
+
+      validateObjectId(
+        courseId
+      );
+
+      validateFile(
+        req.file,
+        MIME_TYPES.IMAGE
+      );
+if (
+  course.instructor.toString() !==
+  req.user.id
+) {
+  const error = new Error(
+    "You are not authorized to update this course."
+  );
+
+  error.statusCode = 403;
+
+  throw error;
+}
+      const result =
+        await uploadCourseThumbnail(
+          courseId,
+          req.file
+        );
+
+      return res.status(200).json({
+        success: true,
+
+        message:
+          COURSE_MESSAGES.THUMBNAIL_UPLOADED,
+
+        data: result,
+      });
+
+    } catch (error) {
+
+      logError(error);
+
+      return res.status(
+        error.statusCode || 500
+      ).json({
+        success: false,
+
+        message:
+          error.message ||
+          "Internal Server Error",
+      });
+    }
+  };

@@ -154,3 +154,20 @@ export const RESOURCE_TYPES = {
 
   AUTO: "auto",
 };
+
+export const CLOUDINARY_FOLDERS = {
+  COURSE_THUMBNAILS:
+    "course-thumbnails",
+
+  PROFILE_IMAGES:
+    "profile-images",
+
+  LECTURE_VIDEOS:
+    "lecture-videos",
+};
+
+export const FILE_FIELDS = {
+  COURSE_THUMBNAIL: "thumbnail",
+  PROFILE_IMAGE: "profileImage",
+  LECTURE_VIDEO: "lectureVideo",
+};

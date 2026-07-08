@@ -1,6 +1,4 @@
-/**
- * Format Uploaded File Response
- */
+
 export const formatUploadedFile = (
   uploadResult
 ) => {

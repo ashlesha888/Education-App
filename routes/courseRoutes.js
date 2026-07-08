@@ -10,8 +10,15 @@ import {
   filterCoursesByCategory,
   searchCourses,
   getCoursesByInstructor,
+  uploadCourseThumbnailController,
+} from "../controllers/courseController.js";
+import {
+  uploadCourseThumbnailController,
 } from "../controllers/courseController.js";
 
+import {
+  uploadImage,
+} from "../middlewares/uploadMiddleware.js";
 import upload from "../middlewares/multer.js";
 import {
   createSection,
@@ -60,7 +67,15 @@ router.get("/search", searchCourses);
 router.get("/category/:categoryId", filterCoursesByCategory);
 
 router.get("/instructor/:instructorId", getCoursesByInstructor);
-
+router.post(
+  "/upload-course-thumbnail",
+  protect,
+  isInstructor,
+  uploadImage.single(
+  FILE_FIELDS.COURSE_THUMBNAIL
+),
+  uploadCourseThumbnailController
+);
 // LAST
 router.get("/:courseId", getCourseById);
 
