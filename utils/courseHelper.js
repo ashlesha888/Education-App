@@ -57,13 +57,27 @@ export const uploadCourseThumbnail = async (
             uploadResult
         );
 
-    course.thumbnail = {
-        url:
-            formattedFile.url,
+course.thumbnail = {
+  url:
+    formattedFile.url,
 
-        publicId:
-            formattedFile.publicId,
-    };
+  publicId:
+    formattedFile.publicId,
+
+  format:
+    formattedFile.format,
+
+  size:
+    formattedFile.size,
+};
+    if (
+  course.thumbnail?.publicId
+) {
+  await deleteFromCloudinary(
+    course.thumbnail.publicId,
+    RESOURCE_TYPES.IMAGE
+  );
+}
 
     await course.save();
 
