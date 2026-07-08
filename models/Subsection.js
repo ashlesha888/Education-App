@@ -19,7 +19,13 @@ const subsectionSchema = new mongoose.Schema(
       trim: true,
       maxlength: 1000,
     },
-
+video: {
+  url: String,
+  publicId: String,
+  duration: Number,
+  format: String,
+  size: Number,
+},
     videoUrl: {
       type: String,
       required: true,
