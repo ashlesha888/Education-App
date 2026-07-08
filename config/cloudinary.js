@@ -34,57 +34,45 @@ export const uploadToCloudinary = async (fileBuffer, folder) => {
   });
 };
 
-export const deleteFromCloudinary = async (publicId) => {
+// FIXED: Added resourceType option to accept variations (image, video, raw)
+export const deleteFromCloudinary = async (publicId, resourceType = "image") => {
   if (!publicId) return null;
-  return await cloudinary.uploader.destroy(publicId);
+  return await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
 };
- 
+
+// FIXED: Internal call to deleteFromCloudinary now forwards the proper resourceType
 export const replaceUploadedFile = async (
   oldPublicId,
   newFile,
   folder,
   resourceType = "auto"
 ) => {
-
   // Delete old file (if exists)
   if (oldPublicId) {
-
-    await deleteFromCloudinary(
-      oldPublicId,
-      resourceType
-    );
-
+    // If resourceType is auto, deletion needs a concrete type (defaults to image)
+    const deletionType = resourceType === "auto" ? "image" : resourceType;
+    await deleteFromCloudinary(oldPublicId, deletionType);
   }
 
   // Upload new file
-  const uploadResult =
-    await uploadToCloudinary(
-
-      newFile,
-
-      folder,
-
-      resourceType
-
-    );
+  const uploadResult = await uploadToCloudinary(newFile, folder);
 
   return uploadResult;
 };
 
-export const generateThumbnailUrl = (
-  imageUrl,
-  width = 300,
-  height = 300
-) => {
-
+export const generateThumbnailUrl = (imageUrl, width = 300, height = 300) => {
   return imageUrl.replace(
-
     "/upload/",
-
     `/upload/w_${width},h_${height},c_fill/`
-
   );
-
 };
 
-export default Object.freeze(cloudinary);
+// FIXED: Bundled everything into a custom service object to safely freeze it
+const cloudinaryService = {
+  upload: uploadToCloudinary,
+  delete: deleteFromCloudinary,
+  replace: replaceUploadedFile,
+  thumbnail: generateThumbnailUrl,
+};
+
+export default Object.freeze(cloudinaryService);

@@ -1,4 +1,6 @@
 import mongoose from "mongoose";
+import fileSchema from "./fileSchema.js";
+
 
 const courseSchema = new mongoose.Schema(
   {
@@ -66,18 +68,13 @@ totalRatings: {
 
     status: {
       type: String,
-      enum: ["Draft", "Published"],
+      enum: Object.values(COURSE_STATUS),
       default: "Draft",
     },
 
     thumbnail: {
-  type: String,
+  type: fileSchema,
   required: true,
-  trim: true,
-  
-  url: String,
-  publicId: String,
-
 },
 
     tag: {

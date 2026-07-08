@@ -1,141 +1,42 @@
 import Profile from "../models/Profile.js";
+import { replaceUploadedFile } from "./cloudinaryHelper.js";
+import { formatUploadedFile, getFileMetadata } from "./fileFormatter.js";
+import { CLOUDINARY_FOLDERS, RESOURCE_TYPES } from "../config/constants.js";
 
-import {
-  uploadToCloudinary,
-  deleteFromCloudinary,
-} from "./cloudinaryHelper.js";
+export const findExistingProfile = async (profileId) => {
+  const profile = await Profile.findById(profileId);
 
-import {
-  formatUploadedFile,
-} from "./fileFormatter.js";
+  if (!profile) {
+    const error = new Error("Profile not found.");
+    error.statusCode = 404;
+    throw error;
+  }
 
-import {
-  CLOUDINARY_FOLDERS,
-  RESOURCE_TYPES,
-} from "../config/constants.js";
-import {
-  getFileMetadata,
-} from "./fileFormatter.js";
-/**
- * Find Existing Profile
- */
-export const findExistingProfile =
-  async (profileId) => {
-
-    const profile =
-      await Profile.findById(
-        profileId
-      );
-
-    if (!profile) {
-
-      const error =
-        new Error(
-          "Profile not found."
-        );
-
-      error.statusCode = 404;
-
-      throw error;
-    }
-
-    return profile;
+  return profile;
 };
 
-/**
- * Upload Profile Image
- */
-export const uploadProfileImage =
-  async (
-    profileId,
-    file
-  ) => {
+export const uploadProfileImage = async (profileId, file) => {
+  const profile = await findExistingProfile(profileId);
 
-    const profile =
-      await findExistingProfile(
-        profileId
-      );
+  const uploadResult = await replaceUploadedFile({
+    oldPublicId: profile.profileImage?.publicId,
+    file,
+    folder: CLOUDINARY_FOLDERS.PROFILE_IMAGES,
+    resourceType: RESOURCE_TYPES.IMAGE,
+  });
 
-    if (
-      profile.profileImage?.publicId
-    ) {
+  const formattedImage = formatUploadedFile(uploadResult);
 
-      const uploadResult =
-await replaceUploadedFile(
+  profile.profileImage = formattedImage;
+  await profile.save();
 
-profile.profileImage?.publicId,
-
-file,
-
-CLOUDINARY_FOLDERS.PROFILE_IMAGES,
-
-RESOURCE_TYPES.IMAGE
-
-);
-
-    }
-
-    const uploadResult =
-await replaceUploadedFile(
-
-profile.profileImage?.publicId,
-
-file,
-
-CLOUDINARY_FOLDERS.PROFILE_IMAGES,
-
-RESOURCE_TYPES.IMAGE
-
-);
-
-    const formattedImage =
-      formatUploadedFile(
-        uploadResult
-      );
-
-    profile.profileImage = {
-
-      url:
-        formattedImage.url,
-
-      publicId:
-        formattedImage.publicId,
-
-      format:
-        formattedImage.format,
-
-      size:
-        formattedImage.size,
-
-    };
-
-    await profile.save();
-
-    return {
-
-      profile,
-
-      profileImage:
-        formattedImage,
-
-    };
+  return {
+    profile,
+    profileImage: formattedImage,
+  };
 };
 
-/**
- * Get Profile Image Metadata
- */
-export const getProfileImageMetadata =
-  async (
-    profileId
-  ) => {
-
-    const profile =
-      await findExistingProfile(
-        profileId
-      );
-
-    return getFileMetadata(
-      profile.profileImage
-    );
-
+export const getProfileImageMetadata = async (profileId) => {
+  const profile = await findExistingProfile(profileId);
+  return getFileMetadata(profile.profileImage);
 };
