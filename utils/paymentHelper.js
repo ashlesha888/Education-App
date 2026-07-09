@@ -3,7 +3,8 @@ import razorpay from "../config/razorpay.js";
 import {
   PAYMENT_CURRENCY,
 } from "../config/constants.js";
-
+import Payment from "../models/paymentModel.js";
+import Course from "../models/courseModel.js";
 
 /**
  * Create Razorpay Order
@@ -147,5 +148,113 @@ export const cancelPayment = async (
   await payment.save();
 
   return payment;
+
+};
+
+/**
+ * Create Payment
+ */
+export const createPayment = async ({
+  studentId,
+  courseId,
+}) => {
+
+  // Find Course
+  const course =
+    await Course.findById(
+      courseId
+    );
+
+  if (!course) {
+
+    const error =
+      new Error(
+        "Course not found."
+      );
+
+    error.statusCode = 404;
+
+    throw error;
+
+  }
+
+  // Prevent duplicate purchase
+  const existingPayment =
+    await Payment.findOne({
+
+      student: studentId,
+
+      course: courseId,
+
+      status: PAYMENT_STATUS.SUCCESS,
+
+    });
+
+  if (existingPayment) {
+
+    const error =
+      new Error(
+        "Course already purchased."
+      );
+
+    error.statusCode = 400;
+
+    throw error;
+
+  }
+
+  // Generate receipt
+  const receipt =
+    `RCPT_${Date.now()}`;
+
+  // Create Razorpay Order
+  const razorpayOrder =
+    await createPaymentOrder({
+
+      amount:
+        course.price,
+
+      receipt,
+
+      notes: {
+
+        studentId,
+
+        courseId,
+
+      },
+
+    });
+
+  // Save Payment
+  const payment =
+    await Payment.create({
+
+      student:
+        studentId,
+
+      course:
+        courseId,
+
+      amount:
+        course.price,
+
+      receipt,
+
+      razorpayOrderId:
+        razorpayOrder.id,
+
+      status:
+        PAYMENT_STATUS.PENDING,
+
+    });
+
+  return {
+
+    payment,
+
+    razorpayOrder,
+
+  };
 
 };
