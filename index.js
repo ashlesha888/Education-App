@@ -16,6 +16,7 @@ import studentDashboardRoutes from "./routes/studentDashboardRoutes.js";
 import searchRoutes from "./routes/searchRoutes.js";
 import tagRoutes from "./routes/tagRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
 
 dotenv.config();
 
@@ -39,8 +40,9 @@ app.use("/api/v1/student", studentDashboardRoutes);
 app.use("/api/v1/search", searchRoutes);
 app.use("/api/v1/tags", tagRoutes);
 app.use("/api/v1/payments", paymentRoutes);
+app.use("/api/v1/admin", adminRoutes);
 
-app.get("/", (req, res) => {
+app.get("/", (req, res) => { 
   res.status(200).json({
     success: true,
     message: "Backend is running successfully",
