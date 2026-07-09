@@ -6,9 +6,6 @@ import {
 import Payment from "../models/paymentModel.js";
 import Course from "../models/courseModel.js";
 
-/**
- * Create Razorpay Order
- */
 export const createPaymentOrder = async ({
   amount,
   receipt,
@@ -50,9 +47,6 @@ export const createPaymentOrder = async ({
 
 };
 
-/**
- * Verify Razorpay Payment Signature
- */
 export const verifyPaymentSignature = ({
   razorpayOrderId,
   razorpayPaymentId,
@@ -78,9 +72,6 @@ export const verifyPaymentSignature = ({
 
 };
 
-/**
- * Fetch Payment Details
- */
 export const fetchPaymentDetails = async (
   paymentId
 ) => {
@@ -110,9 +101,6 @@ export const fetchPaymentDetails = async (
 
 };
 
-/**
- * Mark Payment as Cancelled
- */
 export const cancelPayment = async (
   payment
 ) => {
@@ -151,9 +139,7 @@ export const cancelPayment = async (
 
 };
 
-/**
- * Create Payment
- */
+
 export const createPayment = async ({
   studentId,
   courseId,
