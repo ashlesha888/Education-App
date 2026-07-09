@@ -1,167 +1,56 @@
 import SubSection from "../models/subSectionModel.js";
+import { replaceUploadedFile } from "./cloudinaryHelper.js";
+import { formatUploadedFile, getFileMetadata } from "./fileFormatter.js";
+import { CLOUDINARY_FOLDERS, RESOURCE_TYPES } from "../config/constants.js";
 
-import {
-    uploadToCloudinary,
-    deleteFromCloudinary,
-} from "./cloudinaryHelper.js";
+/**
+ * Find an existing SubSection by ID or throw a 404 error
+ */
+export const findExistingSubSection = async (subSectionId) => {
+  const subSection = await SubSection.findById(subSectionId);
 
-import {
-    formatUploadedFile,
-} from "./fileFormatter.js";
+  if (!subSection) {
+    const error = new Error("SubSection not found.");
+    error.statusCode = 404;
+    throw error;
+  }
 
-import {
-    CLOUDINARY_FOLDERS,
-    RESOURCE_TYPES,
-} from "../config/constants.js";
-import {
-  getFileMetadata,
-} from "./fileFormatter.js";
-
-
-
-
-export const uploadLectureVideo =
-async (
-subSectionId,
-file
-)=>{
-
-const subSection =
-await findExistingSubSection(
-subSectionId
-);
-
-if(
-subSection.video?.publicId
-){
-
-const uploadResult =
-await replaceUploadedFile(
-
-subSection.video?.publicId,
-
-file,
-
-CLOUDINARY_FOLDERS.LECTURE_VIDEOS,
-
-RESOURCE_TYPES.VIDEO
-
-);
-
-}
-
-const uploadResult =
-await replaceUploadedFile(
-
-subSection.video?.publicId,
-
-file,
-
-CLOUDINARY_FOLDERS.LECTURE_VIDEOS,
-
-RESOURCE_TYPES.VIDEO
-
-);
-
-const formattedVideo =
-formatUploadedFile(
-uploadResult
-);
-
-subSection.video ={
-
-url:
-formattedVideo.url,
-
-publicId:
-formattedVideo.publicId,
-
-duration:
-formattedVideo.duration,
-
-format:
-formattedVideo.format,
-
-size:
-formattedVideo.size,
-
+  return subSection;
 };
 
-await subSection.save();
+/**
+ * Upload or replace a lecture video for a SubSection
+ */
+export const uploadLectureVideo = async (subSectionId, file) => {
+  if (!file) {
+    const error = new Error("Lecture video is required.");
+    error.statusCode = 400;
+    throw error;
+  }
+  const subSection = await findExistingSubSection(subSectionId);
 
-return{
+  const uploadResult = await replaceUploadedFile({
+    oldPublicId: subSection.video?.publicId,
+    file,
+    folder: CLOUDINARY_FOLDERS.LECTURE_VIDEOS,
+    resourceType: RESOURCE_TYPES.VIDEO,
+  });
 
-subSection,
+  const formattedVideo = formatUploadedFile(uploadResult);
 
-video:
-formattedVideo,
+  subSection.video = formattedVideo;
+  await subSection.save();
 
+  return {
+    subSection,
+    video: formattedVideo,
+  };
 };
-
-};
-
-export const findExistingSubSection =
-    async (
-        subSectionId
-    ) => {
-
-        const subSection =
-            await SubSection.findById(
-                subSectionId
-            );
-
-        if (!subSection) {
-
-            const error =
-                new Error(
-                    "SubSection not found."
-                );
-
-            error.statusCode = 404;
-
-            throw error;
-
-        }
-
-        return subSection;
-
-    };
 
 /**
  * Get Lecture Video Metadata
  */
-export const getLectureVideoMetadata =
-  async (
-    subSectionId
-  ) => {
-
-    const subSection =
-      await findExistingSubSection(
-        subSectionId
-      );
-
-    return getFileMetadata(
-      subSection.video
-    );
-
+export const getLectureVideoMetadata = async (subSectionId) => {
+  const subSection = await findExistingSubSection(subSectionId);
+  return getFileMetadata(subSection.video);
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
