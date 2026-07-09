@@ -4,6 +4,21 @@ import {
 import {
   verifyPayment,
 } from "../utils/paymentHelper.js";
+import {
+  getRevenueReport,
+} from "../utils/paymentHelper.js";
+import {
+  getPaymentHistory,
+  getPaymentDetails,
+} from "../utils/paymentHelper.js";
+
+import {
+
+  getMonthlyRevenue,
+
+  getTopSellingCourses,
+
+} from "../utils/paymentHelper.js";
 /**
  * Create Payment Order
  */
@@ -122,3 +137,163 @@ async (
   }
 
 };
+/**
+ * Get Payment History
+ */
+export const getPaymentHistoryController =
+async (
+  req,
+  res,
+  next
+) => {
+
+  try {
+
+    const payments =
+      await getPaymentHistory(
+        req.user.id
+      );
+
+    return res.status(200).json({
+
+      success: true,
+
+      count: payments.length,
+
+      data: payments,
+
+    });
+
+  } catch (error) {
+
+    next(error);
+
+  }
+
+};
+/**
+ * Get Payment Details
+ */
+export const getPaymentDetailsController =
+async (
+  req,
+  res,
+  next
+) => {
+
+  try {
+
+    const payment =
+      await getPaymentDetails(
+
+        req.params.paymentId,
+
+        req.user.id
+
+      );
+
+    return res.status(200).json({
+
+      success: true,
+
+      data: payment,
+
+    });
+
+  } catch (error) {
+
+    next(error);
+
+  }
+
+};
+export const getRevenueReportController =
+async (
+  req,
+  res,
+  next
+) => {
+
+  try {
+
+    const report =
+      await getRevenueReport();
+
+    return res
+      .status(200)
+      .json({
+
+        success: true,
+
+        data: report,
+
+      });
+
+  } catch (error) {
+
+    next(error);
+
+  }
+
+};
+
+export const getMonthlyRevenueController =
+async (
+  req,
+  res,
+  next
+) => {
+
+  try {
+
+    const revenue =
+      await getMonthlyRevenue();
+
+    return res
+      .status(200)
+      .json({
+
+        success: true,
+
+        data: revenue,
+
+      });
+
+  } catch (error) {
+
+    next(error);
+
+  }
+
+};
+
+export const getTopSellingCoursesController =
+async (
+  req,
+  res,
+  next
+) => {
+
+  try {
+
+    const courses =
+      await getTopSellingCourses();
+
+    return res
+      .status(200)
+      .json({
+
+        success: true,
+
+        data: courses,
+
+      });
+
+  } catch (error) {
+
+    next(error);
+
+  }
+
+};
+

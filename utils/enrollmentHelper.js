@@ -44,9 +44,37 @@ export const enrollStudent = async ({
 
   }
 
-  course.studentsEnrolled.push(
-    studentId
+  const alreadyEnrolled = course.studentsEnrolled.some(
+  (id) => id.toString() === studentId.toString()
+);
+
+if (alreadyEnrolled) {
+
+  const error = new Error(
+    "Student is already enrolled in this course."
   );
+
+  error.statusCode = 400;
+
+  throw error;
+
+}
+
+course.studentsEnrolled.push(studentId);
+
+course.totalStudentsEnrolled += 1;
+
+const alreadyPurchased = user.courses.some(
+  (id) => id.toString() === courseId.toString()
+);
+
+if (!alreadyPurchased) {
+  user.courses.push(courseId);
+}
+
+await course.save();
+
+await user.save();
 
   course.totalStudentsEnrolled += 1;
 

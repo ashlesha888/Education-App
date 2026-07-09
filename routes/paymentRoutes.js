@@ -5,6 +5,19 @@ import { auth } from "../middlewares/authMiddleware.js";
 import {
   createPaymentController,
   verifyPaymentController,
+  getPaymentHistoryController,
+  getPaymentDetailsController,
+  getRevenueReportController,
+} from "../controllers/paymentController.js";
+import {
+  paymentWebhookController,
+} from "../controllers/paymentWebhookController.js";
+import {
+
+  getMonthlyRevenueController,
+
+  getTopSellingCoursesController,
+
 } from "../controllers/paymentController.js";
 
 const router = express.Router();
@@ -26,5 +39,39 @@ router.post(
   verifyPaymentController
 );
 
+router.get(
+  "/history",
+  auth,
+  getPaymentHistoryController
+);
+
+router.get(
+  "/:paymentId",
+  auth,
+  getPaymentDetailsController
+);
+
+router.post(
+  "/webhook",
+  paymentWebhookController
+);
+
+router.get(
+  "/analytics/revenue",
+  auth,
+  getRevenueReportController
+);
+
+router.get(
+  "/analytics/monthly-revenue",
+  auth,
+  getMonthlyRevenueController
+);
+
+router.get(
+  "/analytics/top-courses",
+  auth,
+  getTopSellingCoursesController
+);
 
 export default router;

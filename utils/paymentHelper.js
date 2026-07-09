@@ -332,10 +332,298 @@ export const verifyPayment = async ({
     razorpaySignature;
 
   payment.paymentMethod =
-    paymentDetails.method;
+  paymentDetails.method;
+
+payment.invoiceNumber =
+  generateInvoiceNumber();
 
   await payment.save();
 
   return payment;
 
 };
+
+/**
+ * Generate Invoice Number
+ */
+export const generateInvoiceNumber = () => {
+
+  return `INV-${Date.now()}-${Math.floor(
+    Math.random() * 10000
+  )}`;
+
+};
+/**
+ * Get Payment History
+ */
+export const getPaymentHistory = async (
+  studentId
+) => {
+
+  const payments =
+    await Payment.find({
+
+      student: studentId,
+
+      status: PAYMENT_STATUS.SUCCESS,
+
+    })
+
+    .populate(
+      "course",
+      "courseName thumbnail price"
+    )
+
+    .sort({
+      createdAt: -1,
+    });
+
+  return payments;
+
+};
+/**
+ * Get Payment Details
+ */
+export const getPaymentDetails = async (
+  paymentId,
+  studentId
+) => {
+
+  const payment =
+    await Payment.findOne({
+
+      _id: paymentId,
+
+      student: studentId,
+
+    })
+
+    .populate(
+      "course",
+      "courseName thumbnail price instructor"
+    );
+
+  if (!payment) {
+
+    const error =
+      new Error(
+        "Payment not found."
+      );
+
+    error.statusCode = 404;
+
+    throw error;
+
+  }
+
+  return payment;
+
+};
+/**
+ * Get Revenue Report
+ */
+export const getRevenueReport =
+async () => {
+
+  const report =
+    await Payment.aggregate([
+
+      {
+
+        $match: {
+
+          status:
+            PAYMENT_STATUS.SUCCESS,
+
+        },
+
+      },
+
+      {
+
+        $group: {
+
+          _id: null,
+
+          totalRevenue: {
+
+            $sum: "$amount",
+
+          },
+
+          totalPayments: {
+
+            $sum: 1,
+
+          },
+
+          averagePayment: {
+
+            $avg: "$amount",
+
+          },
+
+        },
+
+      },
+
+    ]);
+
+  return report[0] || {
+
+    totalRevenue: 0,
+
+    totalPayments: 0,
+
+    averagePayment: 0,
+
+  };
+
+};
+
+/**
+ * Monthly Revenue
+ */
+export const getMonthlyRevenue =
+async () => {
+
+  return await Payment.aggregate([
+
+    {
+
+      $match: {
+
+        status:
+          PAYMENT_STATUS.SUCCESS,
+
+      },
+
+    },
+
+    {
+
+      $group: {
+
+        _id: {
+
+          year: {
+
+            $year:
+              "$createdAt",
+
+          },
+
+          month: {
+
+            $month:
+              "$createdAt",
+
+          },
+
+        },
+
+        revenue: {
+
+          $sum: "$amount",
+
+        },
+
+      },
+
+    },
+
+    {
+
+      $sort: {
+
+        "_id.year": 1,
+
+        "_id.month": 1,
+
+      },
+
+    },
+
+  ]);
+
+};
+
+/**
+ * Top Selling Courses
+ */
+export const getTopSellingCourses =
+async (
+  limit = 10
+) => {
+
+  return await Payment.aggregate([
+
+    {
+
+      $match: {
+
+        status:
+          PAYMENT_STATUS.SUCCESS,
+
+      },
+
+    },
+
+    {
+
+      $group: {
+
+        _id: "$course",
+
+        sales: {
+
+          $sum: 1,
+
+        },
+
+        revenue: {
+
+          $sum: "$amount",
+
+        },
+
+      },
+
+    },
+
+    {
+
+      $sort: {
+
+        sales: -1,
+
+      },
+
+    },
+
+    {
+
+      $limit: limit,
+
+    },
+
+    {
+
+      $lookup: {
+
+        from: "courses",
+
+        localField: "_id",
+
+        foreignField: "_id",
+
+        as: "course",
+
+      },
+
+    },
+
+  ]);
+
+};
+
