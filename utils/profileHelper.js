@@ -1,5 +1,5 @@
 import Profile from "../models/Profile.js";
-import { replaceUploadedFile } from "./cloudinaryHelper.js";
+import { replaceUploadedFile, replaceUploadedFile, deleteFromCloudinary } from "./cloudinaryHelper.js";
 import { formatUploadedFile, getFileMetadata } from "./fileFormatter.js";
 import { CLOUDINARY_FOLDERS, RESOURCE_TYPES } from "../config/constants.js";
 
@@ -39,4 +39,30 @@ export const uploadProfileImage = async (profileId, file) => {
 export const getProfileImageMetadata = async (profileId) => {
   const profile = await findExistingProfile(profileId);
   return getFileMetadata(profile.profileImage);
+};
+
+/**
+ * Delete Profile Image
+ */
+export const deleteProfileImage = async (profileId) => {
+  const profile = await findExistingProfile(profileId);
+
+  if (!profile.profileImage || !profile.profileImage.publicId) {
+    const error = new Error("Profile image not found.");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  // Delete asset from Cloudinary
+  return await deleteUploadedFile({
+    model: profile,
+    field: "profileImage",
+    resourceType: RESOURCE_TYPES.IMAGE,
+  });
+
+  // Clear the field and save to DB
+  profile.profileImage = null;
+  await profile.save();
+
+  return profile;
 };

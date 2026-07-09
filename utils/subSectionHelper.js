@@ -1,5 +1,5 @@
 import SubSection from "../models/subSectionModel.js";
-import { replaceUploadedFile } from "./cloudinaryHelper.js";
+import { replaceUploadedFile, deleteFromCloudinary } from "./cloudinaryHelper.js";
 import { formatUploadedFile, getFileMetadata } from "./fileFormatter.js";
 import { CLOUDINARY_FOLDERS, RESOURCE_TYPES } from "../config/constants.js";
 
@@ -53,4 +53,26 @@ export const uploadLectureVideo = async (subSectionId, file) => {
 export const getLectureVideoMetadata = async (subSectionId) => {
   const subSection = await findExistingSubSection(subSectionId);
   return getFileMetadata(subSection.video);
+};
+
+/**
+ * Delete Lecture Video
+ */
+export const deleteLectureVideo = async (subSectionId) => {
+  const subSection = await findExistingSubSection(subSectionId);
+
+  if (!subSection.video || !subSection.video.publicId) {
+    const error = new Error("Lecture video not found.");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  // Delete the video asset from Cloudinary
+  await deleteUploadedFile({
+    model: subSection,
+    field: "video",
+    resourceType: RESOURCE_TYPES.VIDEO,
+  });
+
+  return subSection;
 };

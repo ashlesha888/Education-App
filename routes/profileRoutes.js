@@ -3,6 +3,7 @@ import {
   updateProfile,
   deleteAccount,
   getUserDetails,
+  deleteProfileImageController
 } from "../controllers/profileController.js";
 import { auth } from "../middlewares/auth.js";
 import {
@@ -47,5 +48,13 @@ router.patch(
 
 );
 router.post("/public-instructor", getPublicInstructorProfile);
+router.delete(
 
+"/profile-image/:profileId",
+
+auth,
+
+deleteProfileImageController
+
+);
 export default router;

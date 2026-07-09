@@ -16,15 +16,15 @@ export const calculateCourseDuration = (courseContent) => {
 };
 
 export const findExistingCourse = async (courseId) => {
-    const course = await Course.findById(courseId);
+  const course = await Course.findById(courseId);
 
-    if (!course) {
-        const error = new Error("Course not found.");
-        error.statusCode = 404;
-        throw error;
-    }
+  if (!course) {
+    const error = new Error("Course not found.");
+    error.statusCode = 404;
+    throw error;
+  }
 
-    return course;
+  return course;
 };
 
 export const getCourseThumbnailMetadata = async (courseId) => {
@@ -74,8 +74,10 @@ export const deleteCourseThumbnail = async (courseId, userId) => {
     throw error;
   }
 
-  await deleteFromCloudinary(course.thumbnail.publicId, RESOURCE_TYPES.IMAGE);
-
-  return clearUploadedFile(course, "thumbnail");
+  return await deleteUploadedFile({
+    model: course,
+    field: "thumbnail",
+    resourceType: RESOURCE_TYPES.IMAGE,
+  });
 };
 

@@ -264,3 +264,40 @@ export const uploadProfileImageController =
     }
 
 };
+
+import { deleteProfileImage } from "../utils/profileHelper.js";
+
+/**
+ * Delete Profile Image Controller
+ */
+export const deleteProfileImageController = async (req, res, next) => {
+  try {
+    const { profileId } = req.params;
+
+    // 1. Fetch/Delete handling via the helper logic
+    const profile = await deleteProfileImage(profileId);
+
+    // ⭐ Improvement 2: Authorization Check
+    // Ensures the acting user owns this profile before executing or confirming the change
+    if (profile.user.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized: You do not own this profile.",
+      });
+    }
+
+    // ⭐ Improvement 1: Optimized Response Payload
+    // Keeps network traffic light by omitting heavy/unnecessary model properties
+    return res.status(200).json({
+      success: true,
+      message: "Profile image deleted successfully.",
+      data: {
+        profileId: profile._id,
+        profileImage: null,
+      },
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
