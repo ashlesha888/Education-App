@@ -5,7 +5,13 @@ import {
 } from "../config/constants.js";
 import Payment from "../models/paymentModel.js";
 import Course from "../models/courseModel.js";
-
+import Payment from "../models/paymentModel.js";
+import {
+  PAYMENT_STATUS,
+} from "../config/constants.js";
+import {
+  enrollStudent,
+} from "./enrollmentHelper.js";
 export const createPaymentOrder = async ({
   amount,
   receipt,
@@ -134,7 +140,15 @@ export const cancelPayment = async (
   payment.status = "Cancelled";
 
   await payment.save();
+await enrollStudent({
 
+  studentId:
+    payment.student,
+
+  courseId:
+    payment.course,
+
+});
   return payment;
 
 };
@@ -242,5 +256,86 @@ export const createPayment = async ({
     razorpayOrder,
 
   };
+
+};
+
+/**
+ * Verify Payment
+ */
+export const verifyPayment = async ({
+  razorpayOrderId,
+  razorpayPaymentId,
+  razorpaySignature,
+}) => {
+
+  const payment =
+    await Payment.findOne({
+
+      razorpayOrderId,
+
+    });
+
+  if (!payment) {
+
+    const error =
+      new Error(
+        "Payment not found."
+      );
+
+    error.statusCode = 404;
+
+    throw error;
+
+  }
+
+  const isValid =
+    verifyPaymentSignature({
+
+      razorpayOrderId,
+
+      razorpayPaymentId,
+
+      razorpaySignature,
+
+    });
+
+  if (!isValid) {
+
+    payment.status =
+      PAYMENT_STATUS.FAILED;
+
+    await payment.save();
+
+    const error =
+      new Error(
+        "Payment verification failed."
+      );
+
+    error.statusCode = 400;
+
+    throw error;
+
+  }
+
+  const paymentDetails =
+    await fetchPaymentDetails(
+      razorpayPaymentId
+    );
+
+  payment.status =
+    PAYMENT_STATUS.SUCCESS;
+
+  payment.razorpayPaymentId =
+    razorpayPaymentId;
+
+  payment.razorpaySignature =
+    razorpaySignature;
+
+  payment.paymentMethod =
+    paymentDetails.method;
+
+  await payment.save();
+
+  return payment;
 
 };
