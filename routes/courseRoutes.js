@@ -12,6 +12,7 @@ import {
   getCoursesByInstructor,
   uploadCourseThumbnailController,
   deleteCourseThumbnailController,
+  deleteCourseThumbnailController,
 } from "../controllers/courseController.js";
 import {
   uploadCourseThumbnailController,
@@ -78,15 +79,9 @@ router.post(
   uploadCourseThumbnailController
 );
 router.delete(
-
-  "/delete-course-thumbnail",
-
-  protect,
-
-  isInstructor,
-
+  "/thumbnail/:courseId",
+  auth,
   deleteCourseThumbnailController
-
 );
 
 router.post(

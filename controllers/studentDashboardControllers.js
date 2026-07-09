@@ -2,6 +2,9 @@
 import {
   getStudentDashboardData,
 } from "../utils/studentDashboardHelper.js";
+import {
+  deleteLectureVideo,
+} from "../utils/subSectionHelper.js";
 
 export const getStudentDashboard =async (req, res) => {
     try {
@@ -285,3 +288,50 @@ export const getTimeSpentLearning =async (req, res) => {
     }
   };
 
+/**
+ * Delete Lecture Video
+ */
+export const deleteLectureVideoController =
+async (
+  req,
+  res,
+  next
+) => {
+
+  try {
+
+    const {
+      subSectionId,
+    } = req.params;
+
+    const subSection =
+      await deleteLectureVideo(
+        subSectionId
+      );
+
+    return res.status(200).json({
+
+      success: true,
+
+      message:
+        "Lecture video deleted successfully.",
+
+      data: {
+
+        subSectionId:
+          subSection._id,
+
+        video:
+          null,
+
+      },
+
+    });
+
+  } catch (error) {
+
+    next(error);
+
+  }
+
+};

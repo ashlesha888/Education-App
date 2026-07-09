@@ -8,6 +8,7 @@ import {
   deleteSubsection,
   reorderSections,
   reorderSubsections,
+  deleteLectureVideoController,
 } from "../controllers/sectionController.js";
 import {
 uploadLectureVideoController,
@@ -98,4 +99,13 @@ FILE_FIELDS.LECTURE_VIDEO
 uploadLectureVideoController
 
 );
+
+router.delete(
+  "/lecture-video/:subSectionId",
+  auth,
+  isInstructor,
+  deleteLectureVideoController
+);
+
+
 export default router;
