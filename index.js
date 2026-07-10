@@ -5,6 +5,8 @@ import helmet from "helmet";
 import cors from "cors";
 import compression from "compression";
 import hpp from "hpp";
+import mongoSanitize from "express-mongo-sanitize";
+import { apiLimiter,} from "./middlewares/rateLimitMiddleware.js";
 
 import connectDB from "./config/database.js";
 
@@ -67,7 +69,13 @@ app.use(compression({
   threshold: "1kb",
 }));
 app.use(hpp());
-
+app.use(
+  mongoSanitize()
+);
+app.use(
+  "/api",
+  apiLimiter
+);
 
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/course", courseRoutes);
