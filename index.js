@@ -17,6 +17,7 @@ import searchRoutes from "./routes/searchRoutes.js";
 import tagRoutes from "./routes/tagRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
 
 dotenv.config();
 
@@ -41,6 +42,7 @@ app.use("/api/v1/search", searchRoutes);
 app.use("/api/v1/tags", tagRoutes);
 app.use("/api/v1/payments", paymentRoutes);
 app.use("/api/v1/admin", adminRoutes);
+app.use("/api/v1/notifications", notificationRoutes);
 
 app.get("/", (req, res) => { 
   res.status(200).json({

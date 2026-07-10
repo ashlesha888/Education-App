@@ -27,6 +27,15 @@ const ratingAndReviewSchema = new mongoose.Schema(
       ref: "Course",
       required: true,
     },
+    isReported: {
+  type: Boolean,
+  default: false,
+},
+
+reportedAt: {
+  type: Date,
+  default: null,
+},
   },
   {
     timestamps: true,

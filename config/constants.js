@@ -126,3 +126,11 @@ export const PAYMENT_STATUS = Object.freeze({
 });
 
 export const PAYMENT_CURRENCY = "INR";
+
+export const COURSE_STATUS = Object.freeze({
+
+  DRAFT: "Draft",
+
+  PUBLISHED: "Published",
+
+});

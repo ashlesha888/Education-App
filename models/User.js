@@ -66,6 +66,15 @@ const userSchema = new Schema(
         ref: "CourseProgress",
       },
     ],
+    isSuspended: {
+  type: Boolean,
+  default: false,
+},
+
+suspendedAt: {
+  type: Date,
+  default: null,
+},
   },
   {
     timestamps: true,
