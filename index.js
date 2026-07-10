@@ -1,6 +1,10 @@
 import express from "express";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
+import helmet from "helmet";
+import cors from "cors";
+import compression from "compression";
+import hpp from "hpp";
 
 import connectDB from "./config/database.js";
 
@@ -23,11 +27,47 @@ dotenv.config();
 
 const app = express();
 
+const allowedOrigin =
+  process.env.NODE_ENV === "production"
+    ? process.env.FRONTEND_PROD
+    : process.env.FRONTEND_DEV;
+
+app.use(
+  cors({
+    origin: allowedOrigin,
+    credentials: true,
+  })
+);
+
 connectDB();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(helmet({
+  crossOriginResourcePolicy: false,
+}));
+app.use(cors({
+  origin: process.env.FRONTEND_URL,
+  credentials: true,
+  methods: [
+    "GET",
+    "POST",
+    "PUT",
+    "PATCH",
+    "DELETE",
+  ],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+  ],
+}));
+app.use(compression({
+  level: 6,
+  threshold: "1kb",
+}));
+app.use(hpp());
+
 
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/course", courseRoutes);
