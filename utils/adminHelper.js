@@ -119,9 +119,9 @@ export const publishCourse = async (courseId) => {
   const course = await Course.findById(courseId);
 
   if (!course) {
-    const error = new Error("Course not found.");
-    error.statusCode = 404;
-    throw error;
+   throw new NotFoundError(
+  "Course not found."
+);
   }
 
   course.status = COURSE_STATUS.PUBLISHED;
@@ -136,9 +136,9 @@ export const unpublishCourse = async (courseId) => {
   const course = await Course.findById(courseId);
 
   if (!course) {
-    const error = new Error("Course not found.");
-    error.statusCode = 404;
-    throw error;
+  throw new NotFoundError(
+  "Course not found."
+);
   }
 
   course.status = COURSE_STATUS.DRAFT;
@@ -153,9 +153,9 @@ export const deleteCourse = async (courseId) => {
   const course = await Course.findById(courseId).populate("courseContent");
 
   if (!course) {
-    const error = new Error("Course not found.");
-    error.statusCode = 404;
-    throw error;
+throw new NotFoundError(
+  "Course not found."
+);
   }
 
   await User.updateMany(

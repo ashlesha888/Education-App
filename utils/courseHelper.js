@@ -19,9 +19,9 @@ export const findExistingCourse = async (courseId) => {
   const course = await Course.findById(courseId);
 
   if (!course) {
-    const error = new Error("Course not found.");
-    error.statusCode = 404;
-    throw error;
+    throw new NotFoundError(
+  "Course not found."
+);
   }
 
   return course;
