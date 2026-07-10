@@ -41,6 +41,29 @@ const profileSchema = new mongoose.Schema(
   type: fileSchema,
   default: null,
 },
+notificationPreferences: {
+
+  email: {
+    type: Boolean,
+    default: true,
+  },
+
+  announcements: {
+    type: Boolean,
+    default: true,
+  },
+
+  purchases: {
+    type: Boolean,
+    default: true,
+  },
+
+  courseCompletion: {
+    type: Boolean,
+    default: true,
+  },
+
+},
   },
   {
     timestamps: true,

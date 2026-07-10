@@ -108,16 +108,22 @@ async (
 
     } = req.body;
 
-    const payment =
+    const {
+    payment,
+    student,
+    course,
+} =
       await verifyPayment({
 
-        razorpayOrderId,
+    razorpayOrderId,
+    razorpayPaymentId,
+    razorpaySignature,
 
-        razorpayPaymentId,
-
-        razorpaySignature,
-
-      });
+});
+      await sendCoursePurchaseEmail(
+  student,
+  course
+);
 
     return res.status(200).json({
 

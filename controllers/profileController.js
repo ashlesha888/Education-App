@@ -3,7 +3,7 @@ import { uploadToCloudinary } from "../utils/uploadToCloudinary.js";
 import Profile from "../models/Profile.js";
 import User from "../models/User.js";
 import {
-  uploadProfileImage,
+  uploadProfileImage, updateNotificationPreferences, 
 } from "../utils/profileHelper.js";
 
 import {
@@ -300,4 +300,38 @@ export const deleteProfileImageController = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+};
+
+export const updateNotificationPreferencesController =
+async (
+  req,
+  res,
+  next
+) => {
+
+  try {
+
+    const preferences =
+      await updateNotificationPreferences(
+
+        req.user.additionalDetails,
+
+        req.body
+
+      );
+
+    return res.status(200).json({
+
+      success: true,
+
+      data: preferences,
+
+    });
+
+  } catch (error) {
+
+    next(error);
+
+  }
+
 };

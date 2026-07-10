@@ -57,4 +57,10 @@ auth,
 deleteProfileImageController
 
 );
+router.patch(
+  "/notification-preferences",
+  auth,
+  updateNotificationPreferencesController
+);
+
 export default router;

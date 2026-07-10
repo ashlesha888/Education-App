@@ -1,11 +1,15 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import otpGenerator from "otp-generator";
-
+import {
+  sendWelcomeEmail,
+} from "../utils/emailHelper.js";
 import User from "../models/User.js";
 import Profile from "../models/Profile.js";
 import OTP from "../models/OTP.js";
-
+import {
+  sendPasswordResetEmail,
+} from "../utils/emailHelper.js";
 export const sendOTP = async (req, res) => {
   try {
     const { email } = req.body;
@@ -121,7 +125,11 @@ export const signUp = async (req, res) => {
         `${firstName} ${lastName}`
       )}`,
     });
-
+try {
+  await sendWelcomeEmail(user);
+} catch (error) {
+  console.error("Welcome email failed:", error.message);
+}
     return res.status(201).json({
       success: true,
       user,
@@ -335,7 +343,24 @@ export const resetPassword = async (req, res) => {
       { password: hashedPassword },
       { new: true }
     );
+const updatedUser =
+await User.findOne({
+  email,
+});
+try {
 
+  await sendPasswordResetEmail(
+    updatedUser
+  );
+
+} catch (error) {
+
+  console.error(
+    "Password reset email failed:",
+    error.message
+  );
+
+}
     await OTP.deleteMany({ email });
 
     return res.status(200).json({

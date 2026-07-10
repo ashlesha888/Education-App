@@ -339,7 +339,11 @@ payment.invoiceNumber =
 
   await payment.save();
 
-  return payment;
+  return {
+    payment,
+    student,
+    course,
+};
 
 };
 

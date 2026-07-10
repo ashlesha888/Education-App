@@ -76,13 +76,29 @@ const completionPercentage = calculateCourseCompletion(
 
 // Automatically mark course as completed
 if (
-  completionPercentage === 100 &&
-  !progress.isCompleted
+    completionPercentage === 100 &&
+    !progress.isCompleted
 ) {
-  progress.isCompleted = true;
-  progress.completedAt = new Date();
-}
 
+    progress.isCompleted = true;
+
+    progress.completedAt = new Date();
+
+    try {
+
+        await sendCourseCompletionEmail(
+            student,
+            course
+        );
+
+    }
+    catch(error){
+
+        console.error(error);
+
+    }
+
+}
 await progress.save();
 
     const updatedProgress = await progress.populate(

@@ -66,3 +66,30 @@ export const deleteProfileImage = async (profileId) => {
 
   return profile;
 };
+/**
+ * Update Notification Preferences
+ */
+export const updateNotificationPreferences =
+async (
+  profileId,
+  preferences
+) => {
+
+  const profile =
+    await findExistingProfile(
+      profileId
+    );
+
+  profile.notificationPreferences = {
+
+    ...profile.notificationPreferences,
+
+    ...preferences,
+
+  };
+
+  await profile.save();
+
+  return profile.notificationPreferences;
+
+};
