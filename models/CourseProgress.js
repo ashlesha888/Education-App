@@ -47,10 +47,10 @@ const courseProgressSchema = new mongoose.Schema(
 );
 
 // One progress document per student per course
-courseProgressSchema.index(
-  { user: 1, courseId: 1 },
-  { unique: true }
-);
+courseProgressSchema.index({
+  userId: 1,
+  courseId: 1,
+});
 
 const CourseProgress = mongoose.model(
   "CourseProgress",

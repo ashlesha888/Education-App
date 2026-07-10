@@ -150,7 +150,23 @@ export const unpublishCourse = async (courseId) => {
  * Delete Course
  */
 export const deleteCourse = async (courseId) => {
-  const course = await Course.findById(courseId).populate("courseContent");
+  const course = await Course.findById(courseId).populate({
+
+path:"courseContent",
+
+select:"sectionName subSections",
+
+populate:{
+
+path:"subSections",
+
+select:
+
+"title timeDuration video",
+
+},
+
+});;
 
   if (!course) {
 throw new NotFoundError(

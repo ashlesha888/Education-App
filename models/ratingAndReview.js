@@ -42,12 +42,17 @@ reportedAt: {
   }
 );
 
-ratingAndReviewSchema.index({ course: 1 });
+ratingAndReviewSchema.index({
+  course: 1,
+});
 
-ratingAndReviewSchema.index(
-  { user: 1, course: 1 },
-  { unique: true }
-);
+ratingAndReviewSchema.index({
+  user: 1,
+});
+
+ratingAndReviewSchema.index({
+  rating: -1,
+});
 
 const RatingAndReview = mongoose.model(
   "RatingAndReview",

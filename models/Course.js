@@ -105,14 +105,52 @@ totalDuration: {
   }
 );
 
-courseSchema.index({ courseName: "text", courseDescription: "text" });
+courseSchema.index(
 
+{
+
+courseName: "text",
+
+courseDescription: "text",
+
+whatYouWillLearn: "text",
+
+},
+
+{
+
+weights:{
+
+courseName:10,
+
+whatYouWillLearn:6,
+
+courseDescription:3,
+
+},
+
+name:"CourseSearchIndex",
+
+}
+
+);
 courseSchema.index({ tag: 1 });
 
 courseSchema.index({ status: 1 });
 
 courseSchema.index({ averageRating: -1 });
-
+courseSchema.index({
+  instructor: 1,
+  status: 1,
+});
+courseSchema.index({
+  status: 1,
+  averageRating: -1,
+});
+courseSchema.index({
+  status: 1,
+  price: 1,
+});
 courseSchema.index({ price: 1 });
 
 const Course = mongoose.model("Course", courseSchema);

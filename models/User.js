@@ -81,7 +81,22 @@ suspendedAt: {
   }
 );
 
-userSchema.index({ email: 1 });
+userSchema.index(
+  { email: 1 },
+  { unique: true }
+);
+
+userSchema.index({
+  accountType: 1,
+});
+
+userSchema.index({
+  active: 1,
+});
+
+userSchema.index({
+  createdAt: -1,
+});
 
 const User = mongoose.model("User", userSchema);
 

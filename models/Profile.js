@@ -107,6 +107,11 @@ profileSchema.virtual("age").get(function () {
   return age;
 
 });
+
+profileSchema.index({
+  contactNumber: 1,
+});
+
 const Profile = mongoose.model("Profile", profileSchema);
 
 export default Profile;

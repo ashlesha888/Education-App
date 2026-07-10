@@ -24,6 +24,8 @@ import tagRoutes from "./routes/tagRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
+import NotFoundError from "./utils/errors/NotFoundError.js";
+
 
 dotenv.config();
 
@@ -42,7 +44,29 @@ app.use(
 );
 
 connectDB();
+app.all(
+  "*",
+  (
+    req,
+    res,
+    next
+  ) => {
 
+    next(
+
+      new NotFoundError(
+
+        `Cannot find ${req.originalUrl}`
+
+      )
+
+    );
+
+  }
+);
+app.use(
+  errorHandler
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
