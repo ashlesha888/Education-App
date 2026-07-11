@@ -9,21 +9,20 @@ const otpSchema = new mongoose.Schema({
     lowercase: true,
     match: [/^\S+@\S+\.\S+$/, "Please enter a valid email"],
   },
-
   otp: {
     type: String,
     required: true,
     minlength: 6,
     maxlength: 6,
   },
-
   createdAt: {
     type: Date,
     default: Date.now,
-    expires: 300,
+    // Moved the expiration logic to an explicit index declaration below
   },
 });
 
+// --- Email Helper Function ---
 async function sendVerificationEmail(email, otp) {
   try {
     await mailSender(
@@ -33,7 +32,6 @@ async function sendVerificationEmail(email, otp) {
        <p>Here is your One-Time Password (OTP) to complete your registration: <b>${otp}</b></p>
        <p>This code is valid for 5 minutes.</p>`
     );
-
     console.log(`Verification email sent to ${email}`);
   } catch (error) {
     console.error("Error sending verification email:", error);
@@ -41,17 +39,21 @@ async function sendVerificationEmail(email, otp) {
   }
 }
 
+// --- Pre-save Hook ---
 otpSchema.pre("save", async function (next) {
   try {
     if (this.isNew) {
       await sendVerificationEmail(this.email, this.otp);
     }
-
     next();
   } catch (error) {
     next(error);
   }
 });
+
+// Single-field indexes for the OTP Schema
+otpSchema.index({ email: 1 });
+otpSchema.index({ expiresAt: 1 }); // Great for TTL (Time-To-Live) index expiration tracking
 
 const OTP = mongoose.model("OTP", otpSchema);
 

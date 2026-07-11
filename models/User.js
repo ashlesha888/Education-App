@@ -11,7 +11,6 @@ const userSchema = new Schema(
       minlength: 2,
       maxlength: 50,
     },
-
     lastName: {
       type: String,
       required: true,
@@ -19,47 +18,40 @@ const userSchema = new Schema(
       minlength: 2,
       maxlength: 50,
     },
-
     email: {
       type: String,
       required: true,
       trim: true,
       lowercase: true,
-      unique: true,
+      unique: true, // Automatically registers a unique index for email
       match: [/^\S+@\S+\.\S+$/, "Please enter a valid email"],
     },
-
     password: {
       type: String,
       required: true,
       select: false,
     },
-
     accountType: {
       type: String,
       enum: ["Admin", "Student", "Instructor"],
       default: "Student",
       required: true,
     },
-
     additionalData: {
       type: Schema.Types.ObjectId,
       ref: "Profile",
       required: true,
     },
-
     courses: [
       {
         type: Schema.Types.ObjectId,
         ref: "Course",
       },
     ],
-
     profileImage: {
       type: String,
       required: true,
     },
-
     courseProgress: [
       {
         type: Schema.Types.ObjectId,
@@ -67,36 +59,31 @@ const userSchema = new Schema(
       },
     ],
     isSuspended: {
-  type: Boolean,
-  default: false,
-},
-
-suspendedAt: {
-  type: Date,
-  default: null,
-},
+      type: Boolean,
+      default: false,
+    },
+    suspendedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
   }
 );
 
-userSchema.index(
-  { email: 1 },
-  { unique: true }
-);
-
-userSchema.index({
-  accountType: 1,
+// --- Virtual for Full Name ---
+userSchema.virtual("fullName").get(function () {
+  return `${this.firstName} ${this.lastName}`;
 });
 
-userSchema.index({
-  active: 1,
-});
+// Single-field indexes for the User Schema
+userSchema.index({ accountType: 1 });
+userSchema.index({ active: 1 });
 
-userSchema.index({
-  createdAt: -1,
-});
+// Note: If 'email' has { unique: true }, MongoDB creates the index automatically. 
+// If not, uncomment the line below:
+// userSchema.index({ email: 1 });
 
 const User = mongoose.model("User", userSchema);
 

@@ -7,52 +7,40 @@ const ratingAndReviewSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-
     rating: {
       type: Number,
       required: true,
       min: 1,
       max: 5,
     },
-
     review: {
       type: String,
       required: true,
       trim: true,
       maxlength: 1000,
     },
-
     course: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Course",
       required: true,
     },
     isReported: {
-  type: Boolean,
-  default: false,
-},
-
-reportedAt: {
-  type: Date,
-  default: null,
-},
+      type: Boolean,
+      default: false,
+    },
+    reportedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
   }
 );
 
-ratingAndReviewSchema.index({
-  course: 1,
-});
-
-ratingAndReviewSchema.index({
-  user: 1,
-});
-
-ratingAndReviewSchema.index({
-  rating: -1,
-});
+// Single-field indexes for the RatingAndReview Schema
+ratingAndReviewSchema.index({ course: 1 });
+ratingAndReviewSchema.index({ user: 1 });
 
 const RatingAndReview = mongoose.model(
   "RatingAndReview",
