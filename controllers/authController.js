@@ -14,7 +14,8 @@ export const sendOTP = async (req, res) => {
   try {
     const { email } = req.body;
 
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email }).select("_id")
+      .lean();
 
     if (existingUser) {
       return res.status(409).json({
