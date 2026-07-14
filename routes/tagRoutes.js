@@ -15,39 +15,39 @@ import {
   searchTagsController,
 } from "../controllers/tagController.js";
 
-import { protect, isAdmin} from "../middlewares/auth.js";
+import { auth, isAdmin} from "../middlewares/auth.js";
 
 const router = express.Router();
 
-router.post( "/create-tag", protect, isAdmin, createTagController);
+router.post( "/create-tag", auth, isAdmin, createTagController);
 
 router.get( "/get-all-tag", getAllTagsController);
 
 router.get( "/get-tag/:tagId", getTagByIdController);
 
-router.put( "/update-tag/:tagId", protect, isAdmin, updateTagController);
+router.put( "/update-tag/:tagId", auth, isAdmin, updateTagController);
 
-router.delete("/delete-tag/:tagId", protect, isAdmin, deleteTagController);
+router.delete("/delete-tag/:tagId", auth, isAdmin, deleteTagController);
 
 router.get("/get-courses/:tagId", getCoursesByTagController);
 
 router.patch(
   "/add-tag-to-course",
-  protect,
+  auth,
   isAdmin,
   addTagToCourseController
 );
 
 router.patch(
   "/remove-tag-from-course",
-  protect,
+  auth,
   isAdmin,
   removeTagFromCourseController
 );
 
 router.patch(
   "/replace-course-tags",
-  protect,
+  auth,
   isAdmin,
   replaceCourseTagsController
 );
@@ -59,7 +59,7 @@ router.get(
 
 router.get(
   "/statistics",
-  protect,
+  auth,
   isAdmin,
   getTagStatisticsController
 );

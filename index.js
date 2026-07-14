@@ -25,7 +25,7 @@ import paymentRoutes from "./routes/paymentRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import NotFoundError from "./utils/errors/NotFoundError.js";
-
+import "./config/validateEnv.js";
 
 dotenv.config();
 

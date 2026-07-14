@@ -1,49 +1,13 @@
 import mongoose from "mongoose";
 import User from "../models/User.js";
-import AppError from "./AppError.js";
+import AppError from "./errors/AppError.js";
 import Course from "../models/Course.js";
 import Subsection from "../models/Subsection.js";
 import CourseProgress from "../models/CourseProgress.js";
 
 
-// Returns total number of videos (subsections) in a course.
-
-export const getTotalVideosInCourse = async (courseId) => {
-  const course = await Course.findById(courseId).populate({
-    path: "courseContent",
-    populate: {
-      path: "subSections",
-    },
-  });
-
-  if (!course) {
-    return 0;
-  }
-
-  let totalVideos = 0;
-
-  course.courseContent.forEach((section) => {
-    totalVideos += section.subSections.length;
-  });
-
-  return totalVideos;
-};
 
 
-// Calculates course completion percentage.
- 
-export const calculateCourseCompletion = (
-  completedVideos,
-  totalVideos
-) => {
-  if (totalVideos === 0) {
-    return 0;
-  }
-
-  return Number(
-  ((completedVideos / totalVideos) * 100).toFixed(2)
-);
-};
 
 
 

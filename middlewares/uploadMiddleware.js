@@ -1,5 +1,8 @@
 import multer from "multer";
-import { FILE_LIMITS } from "../config/constants.js";
+import {
+  FILE_LIMITS,
+  FILE_UPLOAD_LIMITS,
+} from "../config/constants.js";
 
 const storage = multer.memoryStorage();
 

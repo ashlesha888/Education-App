@@ -55,6 +55,8 @@ notificationSchema.index({ isRead: 1 });
 notificationSchema.index({ user: 1, isRead: 1 });
 
 
-const Notification = mongoose.model("Notification", notificationSchema);
+const Notification =
+  mongoose.models.Notification ||
+  mongoose.model("Notification", notificationSchema);
 
 export default Notification;

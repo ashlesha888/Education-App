@@ -1,4 +1,4 @@
-import { validateStudent } from "../utils/studentHelper.js";
+import { validateStudent } from "../utils/studentDashboardHelper.js";
 
 export const isStudent =
   async (req, res, next) => {

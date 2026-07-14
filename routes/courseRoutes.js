@@ -12,16 +12,12 @@ import {
   getCoursesByInstructor,
   uploadCourseThumbnailController,
   deleteCourseThumbnailController,
-  deleteCourseThumbnailController,
 } from "../controllers/courseController.js";
-import {
-  uploadCourseThumbnailController,
-} from "../controllers/courseController.js";
-
+import { FILE_FIELDS } from "../config/constants.js";
 import {
   uploadImage,
 } from "../middlewares/uploadMiddleware.js";
-import upload from "../middlewares/multer.js";
+import upload from "../config/multer.js";
 import {
   createSection,
   createSubsection,
@@ -71,7 +67,7 @@ router.get("/category/:categoryId", filterCoursesByCategory);
 router.get("/instructor/:instructorId", getCoursesByInstructor);
 router.post(
   "/upload-course-thumbnail",
-  protect,
+  auth,
   isInstructor,
   uploadImage.single(
   FILE_FIELDS.COURSE_THUMBNAIL
@@ -84,21 +80,7 @@ router.delete(
   deleteCourseThumbnailController
 );
 
-router.post(
 
-"/upload-gallery",
-
-protect,
-
-isInstructor,
-
-uploadImage.array(
-"gallery"
-),
-
-uploadGalleryController
-
-);
 // LAST
 router.get("/:courseId", getCourseById);
 

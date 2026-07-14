@@ -3,9 +3,8 @@ import razorpay from "../config/razorpay.js";
 import {
   PAYMENT_CURRENCY,
 } from "../config/constants.js";
-import Payment from "../models/paymentModel.js";
-import Course from "../models/courseModel.js";
-import Payment from "../models/paymentModel.js";
+import Payment from "../models/payment.js";
+import Course from "../models/Course.js";
 import {
   PAYMENT_STATUS,
 } from "../config/constants.js";

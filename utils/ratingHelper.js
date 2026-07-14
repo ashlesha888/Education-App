@@ -2,7 +2,7 @@ import Course from "../models/course.js";
 import RatingAndReview from "../models/ratingAndReview.js";
 import CourseProgress from "../models/courseProgress.js";
 import { MINIMUM_PROGRESS_FOR_REVIEW } from "../config/constants.js";
-import AppError from "./AppError.js";
+import AppError from "./errors/AppError.js";
 
 import {
   getTotalVideosInCourse,

@@ -1,5 +1,5 @@
 import express from "express";
-import { auth } from "../middlewares/authMiddleware.js";
+import { auth } from "../middlewares/auth.js";
 import {
   getNotificationsController,
   markNotificationAsReadController,
@@ -8,7 +8,7 @@ import {
 } from "../controllers/notificationController.js";
 import {
   isAdmin,
-} from "../middlewares/authMiddleware.js";
+} from "../middlewares/auth.js";
 
 import {
   createAnnouncementController,

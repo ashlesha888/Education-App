@@ -1,6 +1,6 @@
 import express from "express";
-import { auth } from "../middlewares/authMiddleware.js";
-import { isAdmin } from "../middlewares/roleMiddleware.js";
+import { auth, isAdmin } from "../middlewares/auth.js";
+
 import {
   getAllUsersController, deleteUserController, suspendUserController, restoreUserController, getUserByIdController, updateUserController, getAllCoursesController, getPendingCoursesController, publishCourseController, unpublishCourseController, deleteCourseController, getAllReviewsController, deleteReviewController, reportReviewController, getDashboardStatisticsController, getTotalRevenueController, getTotalUsersController, getTotalCoursesController, getTotalEnrollmentsController, getRecentRegistrationsController, getRecentPaymentsController, getMonthlyGrowthController, getMostActiveStudentsController, getTopInstructorsController, getPlatformOverviewController, healthCheckController, getDatabaseStatisticsController,  
 } from "../controllers/adminController.js";

@@ -8,17 +8,17 @@ import {
   deleteSubsection,
   reorderSections,
   reorderSubsections,
-  deleteLectureVideoController,
+  
 } from "../controllers/sectionController.js";
 import {
 uploadLectureVideoController,
-} from "../controllers/subSectionController.js";
+} from "../controllers/SectionController.js";
 
 import {
 uploadVideo,
 } from "../middlewares/uploadMiddleware.js";
 import { auth, isInstructor } from "../middlewares/auth.js";
-import upload from "../middlewares/multer.js";
+import upload from "../config/multer.js";
 
 const router = express.Router();
 
@@ -88,7 +88,7 @@ router.patch(
 
 "/upload-video",
 
-protect,
+auth,
 
 isInstructor,
 

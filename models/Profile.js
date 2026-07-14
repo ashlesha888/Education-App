@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import fileSchema from "./fileModel.js";
+import fileSchema from "./fileSchema.js";
 
 const profileSchema = new mongoose.Schema(
   {

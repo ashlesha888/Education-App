@@ -1,5 +1,5 @@
-import SubSection from "../models/subSectionModel.js";
-import { replaceUploadedFile, deleteFromCloudinary } from "./cloudinaryHelper.js";
+import SubSection from "../models/subSection.js";
+import { replaceUploadedFile, deleteFromCloudinary } from "../config/cloudinary.js";
 import { formatUploadedFile, getFileMetadata } from "./fileFormatter.js";
 import { CLOUDINARY_FOLDERS, RESOURCE_TYPES } from "../config/constants.js";
 

@@ -1,4 +1,4 @@
-import { generateThumbnailUrl } from "./cloudinaryHelper.js";
+
 import { RESOURCE_TYPES } from "../config/constants.js";
 
 /**
@@ -55,9 +55,10 @@ export const getFileMetadata = (uploadedFile) => {
 
   return {
     url: uploadedFile.url,
-    thumbnail: uploadedFile.resourceType === RESOURCE_TYPES.IMAGE
-      ? generateThumbnailUrl(uploadedFile.url)
-      : null,
+    thumbnail:
+  uploadedFile.resourceType === RESOURCE_TYPES.IMAGE
+    ? uploadedFile.url
+    : null,
     publicId: uploadedFile.publicId,
     format: uploadedFile.format,
     size: formatFileSize(uploadedFile.size),

@@ -8,7 +8,7 @@ import {
     TAG_MESSAGES,
 } from "../config/constants.js";
 import Course from "../models/Course.js";
-import Tag from "../models/Tag.js";
+
 import { escapeRegex } from "./searchHelper.js";
 
 export const validateCreateTag = async ({
@@ -200,11 +200,7 @@ export const checkDuplicateTag = async (
 };
 
 
-export const escapeRegex = (text) =>
-    text.replace(
-        /[.*+?^${}()|[\]\\]/g,
-        "\\$&"
-    );
+
 
 export const createTag = async ({
     name,

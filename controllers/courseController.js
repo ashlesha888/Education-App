@@ -817,38 +817,5 @@ export const deleteCourseThumbnailController =
 
 };
 
-import { deleteCourseThumbnail } from "../utils/courseHelper.js";
 
-/**
- * Delete Course Thumbnail Controller
- */
-export const deleteCourseThumbnailController = async (req, res, next) => {
-  try {
-    const { courseId } = req.params;
 
-    // 1. Fetch/Execute deletion handling via the business logic helper
-    const course = await deleteCourseThumbnail(courseId);
-
-    // ⭐ Improvement: Clean Controller-Level Authorization
-    // Assumes the course document retains an 'instructor' or 'user' ownership field
-    if (course.instructor.toString() !== req.user.id) {
-      return res.status(403).json({
-        success: false,
-        message: "Unauthorized: You do not own this course.",
-      });
-    }
-
-    // 2. Return optimized, lightweight payload response size
-    return res.status(200).json({
-      success: true,
-      message: "Course thumbnail deleted successfully.",
-      data: {
-        courseId: course._id,
-        thumbnail: null,
-      },
-    });
-
-  } catch (error) {
-    next(error);
-  }
-};

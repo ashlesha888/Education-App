@@ -2,7 +2,7 @@ import express from "express";
 import {
   updateProfile,
   deleteAccount,
-  getUserDetails,
+  getUserDetails, updateProfilePicture,getPublicInstructorProfile,
   deleteProfileImageController
 } from "../controllers/profileController.js";
 import { auth } from "../middlewares/auth.js";
@@ -26,7 +26,7 @@ router.delete("/delete-profile", auth, deleteAccount);
 
 router.get("/user-details", auth, getUserDetails);
 
-import upload from "../middlewares/multer.js";
+import upload from "../config/multer.js";
 
 router.put(
   "/update-profile-picture",
@@ -38,7 +38,7 @@ router.patch(
 
   "/upload-profile-image",
 
-  protect,
+  auth,
 
   uploadImage.single(
     FILE_FIELDS.PROFILE_IMAGE

@@ -5,7 +5,6 @@ import {
     deleteUser,
     suspendUser,
     restoreUser,
-    getAllCourses,
     getPendingCourses,
     publishCourse,
     unpublishCourse,

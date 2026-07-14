@@ -87,8 +87,7 @@ export const deleteFromCloudinary = async (
   }
 };
 
-import { RESOURCE_TYPES } from "../config/constants.js";
-import { deleteFromCloudinary } from "./cloudinaryHelper.js";
+
 
 /**
  * Delete uploaded file from Cloudinary

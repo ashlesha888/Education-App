@@ -108,6 +108,8 @@ courseSchema.index({ averageRating: -1 }); // Indexing in descending order since
 courseSchema.index({ instructor: 1, status: 1 });
 
 
-const Course = mongoose.model("Course", courseSchema);
+const Course =
+  mongoose.models.Course ||
+  mongoose.model("Course", courseSchema);
 
 export default Course;

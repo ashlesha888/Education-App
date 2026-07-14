@@ -3,8 +3,10 @@ import {
 } from "../config/constants.js";
 import mongoose from "mongoose";
 import User from "../models/User.js";
-import Category from "../models/Category.js";
 
+export const escapeRegex = (text) => {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+};
 export const buildCourseQuery = (
     queryParams
 ) => {
@@ -173,36 +175,6 @@ export const buildSortQuery = (
     }
 };
 
-export const buildPaginationQuery = (
-    page =
-        SEARCH_PAGINATION.DEFAULT_PAGE,
-
-    limit =
-        SEARCH_PAGINATION.DEFAULT_LIMIT
-) => {
-    const currentPage =
-        Math.max(
-            Number(page) || 1,
-            1
-        );
-
-    const pageSize =
-        Math.min(
-            Math.max(
-                Number(limit) || 10,
-                1
-            ),
-            SEARCH_PAGINATION.MAX_LIMIT
-        );
-
-    return {
-        page: currentPage,
-        limit: pageSize,
-        skip:
-            (currentPage - 1) *
-            pageSize,
-    };
-};
 
 export const buildPaginationQuery = (
     page =

@@ -1,5 +1,5 @@
-import User from "../models/userModel.js";
-import Course from "../models/courseModel.js";
+import User from "../models/user.js";
+import Course from "../models/course.js";
 /**
  * Enroll Student Into Course
  */

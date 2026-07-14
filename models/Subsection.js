@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import fileSchema from "./fileModel.js";
+import fileSchema from "./fileSchema.js";
 
 const subsectionSchema = new mongoose.Schema(
   {
@@ -48,6 +48,8 @@ subsectionSchema.virtual("formattedDuration").get(function () {
 // This index ensures that specific media lookup doesn't trigger a full collection scan.
 subsectionSchema.index({ "video.publicId": 1 }, { sparse: true });
 
-const Subsection = mongoose.model("Subsection", subsectionSchema);
+const Subsection =
+  mongoose.models.Subsection ||
+  mongoose.model("Subsection", subsectionSchema);
 
 export default Subsection;

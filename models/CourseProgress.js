@@ -53,9 +53,8 @@ courseProgressSchema.index({ user: 1, courseId: 1 }, { unique: true });
 // but adding a compound index with `isCompleted` is perfect for separating "In-Progress" vs "Completed" sections.
 courseProgressSchema.index({ user: 1, isCompleted: 1 });
 
-const CourseProgress = mongoose.model(
-  "CourseProgress",
-  courseProgressSchema
-);
+const CourseProgress =
+  mongoose.models.CourseProgress ||
+  mongoose.model("CourseProgress", courseProgressSchema);
 
 export default CourseProgress;

@@ -26,7 +26,7 @@ import {
     TAG_MESSAGES,
 } from "../config/constants.js";
 
-import { logError } from "../utils/errorHelper.js";
+import { logError } from "../utils/logger.js";
 
 /**
  * Create Tag

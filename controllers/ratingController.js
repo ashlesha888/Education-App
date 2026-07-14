@@ -3,10 +3,10 @@ import mongoose from "mongoose";
 
 import { MINIMUM_RATINGS_FOR_TOP_COURSE } from "../config/constants.js";
 
-import Course from "../models/courseModel.js";
+import Course from "../models/course.js";
 import RatingAndReview from "../models/ratingAndReview.js";
 
-import AppError from "../utils/AppError.js";
+import AppError from "../utils/errors/AppError.js";
 
 import {
   validateStudent,

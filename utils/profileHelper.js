@@ -1,5 +1,5 @@
 import Profile from "../models/Profile.js";
-import { replaceUploadedFile, replaceUploadedFile, deleteFromCloudinary } from "./cloudinaryHelper.js";
+import { replaceUploadedFile, deleteFromCloudinary } from "../config/cloudinary.js";
 import { formatUploadedFile, getFileMetadata } from "./fileFormatter.js";
 import { CLOUDINARY_FOLDERS, RESOURCE_TYPES } from "../config/constants.js";
 

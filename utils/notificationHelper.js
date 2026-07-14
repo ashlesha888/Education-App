@@ -1,5 +1,5 @@
-import Notification from "../models/notificationModel.js";
-import User from "../models/userModel.js";
+import Notification from "../models/notification.js";
+import User from "../models/user.js";
 
 
 /**

@@ -9,7 +9,7 @@ import {
   getRecentlyCompletedCourses,
   getLearningProgress,
   getTimeSpentLearning,
-} from "../controllers/studentDashboardController.js";
+} from "../controllers/studentDashboardControllers.js";
 
 import { auth } from "../middlewares/auth.js";
 import { isStudent } from "../middlewares/studentMiddleware.js";

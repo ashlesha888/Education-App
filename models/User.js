@@ -79,12 +79,14 @@ userSchema.virtual("fullName").get(function () {
 
 // Single-field indexes for the User Schema
 userSchema.index({ accountType: 1 });
-userSchema.index({ active: 1 });
+userSchema.index({ isSuspended: 1 });
 
 // Note: If 'email' has { unique: true }, MongoDB creates the index automatically. 
 // If not, uncomment the line below:
 // userSchema.index({ email: 1 });
 
-const User = mongoose.model("User", userSchema);
+const User =
+  mongoose.models.User ||
+  mongoose.model("User", userSchema);
 
 export default User;

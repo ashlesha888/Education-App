@@ -9,7 +9,7 @@ import {
   deleteReview,
   updateReview,
   getStudentReview,
-  checkCanReview,
+
   getRecentReviews,
   getRatingDistribution,
 } from "../controllers/ratingController.js";

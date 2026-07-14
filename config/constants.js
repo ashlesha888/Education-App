@@ -1,11 +1,6 @@
 export const MINIMUM_PROGRESS_FOR_REVIEW = 20;
 export const MINIMUM_RATINGS_FOR_TOP_COURSE = 5;
 
-export const COURSE_STATUS = {
-  DRAFT: "Draft",
-  PUBLISHED: "Published",
-};
-
 export const ACCOUNT_TYPE = {
   STUDENT: "Student",
   INSTRUCTOR: "Instructor",
@@ -126,11 +121,3 @@ export const PAYMENT_STATUS = Object.freeze({
 });
 
 export const PAYMENT_CURRENCY = "INR";
-
-export const COURSE_STATUS = Object.freeze({
-
-  DRAFT: "Draft",
-
-  PUBLISHED: "Published",
-
-});

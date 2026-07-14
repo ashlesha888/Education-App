@@ -1,7 +1,7 @@
 import Course from "../models/course.js";
 import { formatUploadedFile, getFileMetadata } from "./fileFormatter.js";
 import { CLOUDINARY_FOLDERS, RESOURCE_TYPES } from "../config/constants.js";
-import { replaceUploadedFile, deleteFromCloudinary } from "./cloudinaryHelper.js";
+import { replaceUploadedFile, deleteFromCloudinary } from "../config/cloudinary.js";
 
 export const calculateCourseDuration = (courseContent) => {
   let totalSeconds = 0;
