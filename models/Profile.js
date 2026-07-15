@@ -19,11 +19,11 @@ const profileSchema = new mongoose.Schema(
       default: null,
     },
     contactNumber: {
-      type: String,
-      trim: true,
-      maxlength: 15,
-      default: null,
-    },
+  type: String,
+  trim: true,
+  maxlength: 15,
+  default: undefined,
+},
     profileImage: {
       type: fileSchema,
       default: null,
@@ -80,7 +80,6 @@ profileSchema.virtual("age").get(function () {
   return age;
 });
 
-profileSchema.index({ contactNumber: 1 }, { unique: true, sparse: true });
 
 const Profile =
   mongoose.models.Profile ||
