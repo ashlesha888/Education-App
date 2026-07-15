@@ -1,9 +1,8 @@
 import multer from "multer";
-import { MAX_TOTAL_UPLOAD_SIZE, MIME_TYPES } from "./constants.js"; // Adjust path as needed
+import { MAX_TOTAL_UPLOAD_SIZE, MIME_TYPES } from "./constants.js";
 
 const storage = multer.memoryStorage();
 
-// Centralized file type validation using your application constants
 const fileFilter = (req, file, cb) => {
   const allowedMimeTypes = [
     ...MIME_TYPES.IMAGE,
@@ -21,7 +20,7 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage,
   limits: {
-    fileSize: MAX_TOTAL_UPLOAD_SIZE, // Protects your RAM from OOM crashes (50MB from constants)
+    fileSize: MAX_TOTAL_UPLOAD_SIZE,
   },
   fileFilter,
 });

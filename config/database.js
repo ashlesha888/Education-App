@@ -2,14 +2,14 @@ import mongoose from "mongoose";
 
 // Safe database connection utility
 const connectDB = async () => {
-    const dbURI = process.env.MONGO_URL;
+    const dbURL = process.env.MONGO_URL;
 
     try {
-        if (!dbURI) {
+        if (!dbURL) {
             throw new Error("MONGO_URL is not defined in the environment configurations.");
         }
 
-        await mongoose.connect(dbURI);
+        await mongoose.connect(dbURL);
         console.log(`MongoDB Connected: ${mongoose.connection.host}`);
     } catch (error) {
         console.error("MongoDB Connection Failed:");
