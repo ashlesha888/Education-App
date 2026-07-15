@@ -10,13 +10,11 @@ const paymentSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      // Removed redundant inline index: true
     },
     course: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Course",
       required: true,
-      // Removed redundant inline index: true
     },
     amount: {
       type: Number,
@@ -35,7 +33,7 @@ const paymentSchema = new mongoose.Schema(
     razorpayOrderId: {
       type: String,
       unique: true,
-      sparse: true, // Allows null/missing values for alternative payment models or initialization failures
+      sparse: true, 
     },
     razorpayPaymentId: {
       type: String,

@@ -5,13 +5,11 @@ import Section from "../models/section.js";
 import SubSection from "../models/subSection.js";
 import RatingAndReview from "../models/ratingAndReview.js";
 import Payment from "../models/payment.js"; 
-
+import mongoose from "mongoose";
 import { deleteUploadedFile } from "./cloudinaryHelper.js";
 import { RESOURCE_TYPES, COURSE_STATUS, PAYMENT_STATUS } from "../config/constants.js"; 
 
-/**
- * Get All Users
- */
+
 export const getAllUsers = async () => {
   return await User.find()
     .populate("profile")
@@ -19,9 +17,6 @@ export const getAllUsers = async () => {
     .sort({ createdAt: -1 });
 };
 
-/**
- * Get User By ID
- */
 export const getUserById = async (userId) => {
   const user = await User.findById(userId)
     .populate("profile")
@@ -36,9 +31,6 @@ export const getUserById = async (userId) => {
   return user;
 };
 
-/**
- * Update User
- */
 export const updateUser = async (userId, updates) => {
   const user = await User.findById(userId);
 
@@ -53,9 +45,6 @@ export const updateUser = async (userId, updates) => {
   return user;
 };
 
-/**
- * Delete User
- */
 export const deleteUser = async (userId) => {
   const user = await User.findById(userId);
 
@@ -80,9 +69,6 @@ export const deleteUser = async (userId) => {
   return true;
 };
 
-/**
- * Suspend User
- */
 export const suspendUser = async (userId) => {
   const user = await getUserById(userId);
   user.isSuspended = true;
@@ -91,9 +77,6 @@ export const suspendUser = async (userId) => {
   return user;
 };
 
-/**
- * Restore User
- */
 export const restoreUser = async (userId) => {
   const user = await getUserById(userId);
   user.isSuspended = false;
@@ -102,9 +85,35 @@ export const restoreUser = async (userId) => {
   return user;
 };
 
-/**
- * Get Pending Courses
- */
+export const getAllCourses = async ({
+  page = 1,
+  limit = 10,
+}) => {
+  const skip = (page - 1) * limit;
+
+  const [courses, totalCourses] = await Promise.all([
+    Course.find()
+      .populate("instructor", "firstName lastName email")
+      .populate("tag", "name")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean(),
+
+    Course.countDocuments(),
+  ]);
+
+  return {
+    courses,
+    pagination: {
+      currentPage: page,
+      totalPages: Math.ceil(totalCourses / limit),
+      totalCourses,
+      pageSize: limit,
+    },
+  };
+};
+
 export const getPendingCourses = async () => {
   return await Course.find({ status: "Draft" })
     .populate("instructor", "firstName lastName")
@@ -112,9 +121,6 @@ export const getPendingCourses = async () => {
     .sort({ createdAt: -1 });
 };
 
-/**
- * Publish Course
- */
 export const publishCourse = async (courseId) => {
   const course = await Course.findById(courseId);
 
@@ -129,9 +135,6 @@ export const publishCourse = async (courseId) => {
   return course;
 };
 
-/**
- * Unpublish Course
- */
 export const unpublishCourse = async (courseId) => {
   const course = await Course.findById(courseId);
 
@@ -146,9 +149,6 @@ export const unpublishCourse = async (courseId) => {
   return course;
 };
 
-/**
- * Delete Course
- */
 export const deleteCourse = async (courseId) => {
   const course = await Course.findById(courseId).populate({
 
@@ -202,9 +202,6 @@ throw new NotFoundError(
   return true;
 };
 
-/**
- * Get All Reviews
- */
 export const getAllReviews = async () => {
   return await RatingAndReview.find()
     .populate("user", "firstName lastName")
@@ -212,9 +209,6 @@ export const getAllReviews = async () => {
     .sort({ createdAt: -1 });
 };
 
-/**
- * Delete Review
- */
 export const deleteReview = async (reviewId) => {
   const review = await RatingAndReview.findById(reviewId);
 
@@ -236,9 +230,6 @@ export const deleteReview = async (reviewId) => {
   return true;
 };
 
-/**
- * Report Review
- */
 export const reportReview = async (reviewId) => {
   const review = await RatingAndReview.findById(reviewId);
 
@@ -254,9 +245,6 @@ export const reportReview = async (reviewId) => {
   return review;
 };
 
-/**
- * Get Total Revenue
- */
 export const getTotalRevenue = async () => {
   const revenue = await Payment.aggregate([
     {
@@ -273,23 +261,14 @@ export const getTotalRevenue = async () => {
   return revenue[0]?.totalRevenue || 0;
 };
 
-/**
- * Get Total Users
- */
 export const getTotalUsers = async () => {
   return await User.countDocuments();
 };
 
-/**
- * Get Total Courses
- */
 export const getTotalCourses = async () => {
   return await Course.countDocuments();
 };
 
-/**
- * Get Total Enrollments
- */
 export const getTotalEnrollments = async () => {
   const result = await Course.aggregate([
     {
@@ -303,9 +282,6 @@ export const getTotalEnrollments = async () => {
   return result[0]?.total || 0;
 };
 
-/**
- * Dashboard Statistics
- */
 export const getDashboardStatistics = async () => {
   const [totalRevenue, totalUsers, totalCourses, totalEnrollments] = await Promise.all([
     getTotalRevenue(),
@@ -322,9 +298,6 @@ export const getDashboardStatistics = async () => {
   };
 };
 
-/**
- * Recent Registrations
- */
 export const getRecentRegistrations = async (limit = 10) => {
   return await User.find()
     .populate("profile")
@@ -333,9 +306,6 @@ export const getRecentRegistrations = async (limit = 10) => {
     .limit(limit);
 };
 
-/**
- * Recent Payments
- */
 export const getRecentPayments = async (limit = 10) => {
   return await Payment.find()
     .populate("user", "firstName lastName email")
@@ -344,9 +314,6 @@ export const getRecentPayments = async (limit = 10) => {
     .limit(limit);
 };
 
-/**
- * Monthly Growth
- */
 export const getMonthlyGrowth = async () => {
   return await User.aggregate([
     {
@@ -367,9 +334,6 @@ export const getMonthlyGrowth = async () => {
   ]);
 };
 
-/**
- * Most Active Students
- */
 export const getMostActiveStudents = async (limit = 10) => {
   return await User.aggregate([
     {
@@ -392,9 +356,6 @@ export const getMostActiveStudents = async (limit = 10) => {
   ]);
 };
 
-/**
- * Top Instructors
- */
 export const getTopInstructors = async (limit = 10) => {
   return await Course.aggregate([
     {
@@ -432,11 +393,8 @@ export const getTopInstructors = async (limit = 10) => {
     },
   ]);
 };
-/**
- * Top Rated Courses
- */
-export const getTopRatedCourses =
-async (
+
+export const getTopRatedCourses =async (
   limit = 10
 ) => {
 
@@ -462,11 +420,8 @@ async (
   .limit(limit);
 
 };
-/**
- * Platform Overview
- */
-export const getPlatformOverview =
-async () => {
+
+export const getPlatformOverview =async () => {
 
   const [
 
@@ -509,13 +464,8 @@ async () => {
   };
 
 };
-import mongoose from "mongoose";
 
-/**
- * Health Check
- */
-export const getHealthStatus =
-async () => {
+export const getHealthStatus =async () => {
 
   return {
 
@@ -535,11 +485,8 @@ async () => {
   };
 
 };
-/**
- * Database Statistics
- */
-export const getDatabaseStatistics =
-async () => {
+
+export const getDatabaseStatistics =async () => {
 
   const stats =
     await mongoose.connection.db.stats();

@@ -38,7 +38,6 @@ const ratingAndReviewSchema = new mongoose.Schema(
   }
 );
 
-// Single-field indexes for the RatingAndReview Schema
 ratingAndReviewSchema.index({ course: 1 });
 ratingAndReviewSchema.index({ user: 1 });
 

@@ -110,6 +110,7 @@ export const THUMBNAIL = {
 export const COURSE_STATUS = Object.freeze({
   DRAFT: "Draft",
   PUBLISHED: "Published",
+  ARCHIVED: "Archived",
 });
 
 export const PAYMENT_STATUS = Object.freeze({

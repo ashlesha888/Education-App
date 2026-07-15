@@ -72,18 +72,13 @@ const userSchema = new Schema(
   }
 );
 
-// --- Virtual for Full Name ---
+
 userSchema.virtual("fullName").get(function () {
   return `${this.firstName} ${this.lastName}`;
 });
-
-// Single-field indexes for the User Schema
+ 
 userSchema.index({ accountType: 1 });
 userSchema.index({ isSuspended: 1 });
-
-// Note: If 'email' has { unique: true }, MongoDB creates the index automatically. 
-// If not, uncomment the line below:
-// userSchema.index({ email: 1 });
 
 const User =
   mongoose.models.User ||

@@ -14,7 +14,7 @@ export const emailValidation = [
 
     .withMessage("Invalid email address.")
 
-    .normalizeEmail(),
+    
 
 ];
 export const passwordValidation = [

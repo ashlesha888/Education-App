@@ -1,8 +1,7 @@
 import express from "express";
 import { auth, isAdmin } from "../middlewares/auth.js";
 
-import {
-  getAllUsersController, deleteUserController, suspendUserController, restoreUserController, getUserByIdController, updateUserController, getAllCoursesController, getPendingCoursesController, publishCourseController, unpublishCourseController, deleteCourseController, getAllReviewsController, deleteReviewController, reportReviewController, getDashboardStatisticsController, getTotalRevenueController, getTotalUsersController, getTotalCoursesController, getTotalEnrollmentsController, getRecentRegistrationsController, getRecentPaymentsController, getMonthlyGrowthController, getMostActiveStudentsController, getTopInstructorsController, getTopRatedCoursesController,getPlatformOverviewController, healthCheckController, getDatabaseStatisticsController,  
+import { getAllUsersController, deleteUserController, suspendUserController, restoreUserController, getUserByIdController, updateUserController, getAllCoursesController, getPendingCoursesController, publishCourseController, unpublishCourseController, deleteCourseController, getAllReviewsController, deleteReviewController, reportReviewController, getDashboardStatisticsController, getTotalRevenueController, getTotalUsersController, getTotalCoursesController, getTotalEnrollmentsController, getRecentRegistrationsController, getRecentPaymentsController, getMonthlyGrowthController, getMostActiveStudentsController, getTopInstructorsController, getTopRatedCoursesController,getPlatformOverviewController, healthCheckController, getDatabaseStatisticsController,  
 } from "../controllers/adminController.js";
 
 const router = express.Router();
@@ -34,83 +33,19 @@ router.get("/dashboard/users", auth, isAdmin, getTotalUsersController);
 router.get("/dashboard/courses", auth, isAdmin, getTotalCoursesController);
 router.get("/dashboard/enrollments", auth, isAdmin, getTotalEnrollmentsController);
 router.get("/dashboard/recent-users", auth, isAdmin, getRecentRegistrationsController);
-router.get(
+router.get("/dashboard/recent-payments", auth, isAdmin, getRecentPaymentsController);
 
-  "/dashboard/recent-payments",
 
-  auth,
+// --- Analytics ---
+router.get("/analytics/monthly-growth", auth, isAdmin, getMonthlyGrowthController);
+router.get("/analytics/active-students", auth, isAdmin, getMostActiveStudentsController);
+router.get("/analytics/top-instructors", auth, isAdmin, getTopInstructorsController);
+router.get("/analytics/top-rated-courses", auth, isAdmin, getTopRatedCoursesController);
 
-  isAdmin,
+// --- Others ---
+router.get("/overview", auth, isAdmin, getPlatformOverviewController);
+router.get("/health", healthCheckController);
+router.get("/database/statistics", auth, isAdmin, getDatabaseStatisticsController);
 
-  getRecentPaymentsController
 
-);
-router.get(
-  "/dashboard/recent-payments",
-  auth,
-  isAdmin,
-  getRecentPaymentsController
-);
-
-router.get(
-  "/analytics/monthly-growth",
-  auth,
-  isAdmin,
-  getMonthlyGrowthController
-);
-
-router.get(
-  "/analytics/active-students",
-  auth,
-  isAdmin,
-  getMostActiveStudentsController
-);
-
-router.get(
-  "/analytics/top-instructors",
-  auth,
-  isAdmin,
-  getTopInstructorsController
-);
-
-router.get(
-
-  "/analytics/top-rated-courses",
-
-  auth,
-
-  isAdmin,
-
-  getTopRatedCoursesController
-
-);
-router.get(
-
-  "/overview",
-
-  auth,
-
-  isAdmin,
-
-  getPlatformOverviewController
-
-);
-router.get(
-
-  "/health",
-
-  healthCheckController
-
-);
-router.get(
-
-  "/database/statistics",
-
-  auth,
-
-  isAdmin,
-
-  getDatabaseStatisticsController
-
-);
 export default router;

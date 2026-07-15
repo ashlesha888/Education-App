@@ -1,12 +1,6 @@
 import mongoose from "mongoose";
 import fileSchema from "./fileSchema.js";
-
-// Define Status Constants to avoid ReferenceError
-export const COURSE_STATUS = {
-  DRAFT: "Draft",
-  PUBLISHED: "Published",
-  ARCHIVED: "Archived",
-};
+import { COURSE_STATUS } from "../config/constants.js";
 
 const courseSchema = new mongoose.Schema(
   {

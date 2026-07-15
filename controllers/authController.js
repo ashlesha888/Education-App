@@ -14,8 +14,8 @@ export const sendOTP = async (req, res) => {
   try {
     const { email } = req.body;
 
-    const existingUser = await User.findOne({ email }).select("_id")
-      .lean();
+    // 1. Check if user already exists
+    const existingUser = await User.findOne({ email }).select("_id").lean();
 
     if (existingUser) {
       return res.status(409).json({
@@ -24,13 +24,9 @@ export const sendOTP = async (req, res) => {
       });
     }
 
-    let generatedOtp = otpGenerator.generate(6, {
-      upperCaseAlphabets: false,
-      lowerCaseAlphabets: false,
-      specialChars: false,
-    });
-
-    let otpExists = await OTP.findOne({ otp: generatedOtp });
+    // 2. Generate a unique OTP
+    let generatedOtp = "";
+    let otpExists = true;
 
     while (otpExists) {
       generatedOtp = otpGenerator.generate(6, {
@@ -39,24 +35,36 @@ export const sendOTP = async (req, res) => {
         specialChars: false,
       });
 
-      otpExists = await OTP.findOne({ otp: generatedOtp });
+      // Ensure this specific OTP doesn't already exist in the DB
+      const checkOtp = await OTP.findOne({ otp: generatedOtp }).lean();
+      if (!checkOtp) {
+        otpExists = false;
+      }
     }
 
-    await OTP.create({
+    // 3. Save the unique OTP to the database
+    // (This will trigger your pre-save hook in the OTP Schema to send the email!)
+    const savedOtp = await OTP.create({
       email,
       otp: generatedOtp,
     });
 
+    console.log("SEND OTP EMAIL:", email);
+    console.log("SEND OTP:", generatedOtp);
+
+    // 4. Return success response
     return res.status(200).json({
       success: true,
       message: "OTP sent successfully",
+      // You can temporarily include otp in response for easier Postman testing:
+      // otp: generatedOtp 
     });
   } catch (error) {
-    console.error(error);
-
+    console.error("OTP ERROR:", error);
     return res.status(500).json({
       success: false,
-      message: "Failed to send OTP",
+      message: error.message,
+      error,
     });
   }
 };
@@ -95,17 +103,20 @@ export const signUp = async (req, res) => {
       });
     }
 
-    const recentOtp = await OTP.find({ email })
-      .sort({ createdAt: -1 })
-      .limit(1);
+    const recentOtp = await OTP.findOne({ email }).sort({ createdAt: -1 });
 
-    if (recentOtp.length === 0 || recentOtp[0].otp !== otp) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid or expired OTP",
-      });
-    }
+console.log("EMAIL RECEIVED:", email);
+console.log("FOUND OTP:", recentOtp);
+console.log("Entered OTP:", otp);
+console.log("Stored OTP:", recentOtp?.otp);
 
+if (!recentOtp || recentOtp.otp !== otp) {
+  return res.status(400).json({
+    success: false,
+    message: "Invalid or expired OTP",
+  });
+}
+await OTP.deleteOne({ _id: recentOtp._id });
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const profile = await Profile.create({
@@ -320,9 +331,11 @@ export const resetPassword = async (req, res) => {
           "Password must be at least 8 characters long and contain uppercase, lowercase, number, and special character.",
       });
     }
-    const recentOtp = await OTP.find({ email })
-      .sort({ createdAt: -1 })
-      .limit(1);
+    const recentOtp = await OTP.findOne({ email }).sort({
+  createdAt: -1,
+});
+
+console.log(recentOtp);
 
     if (recentOtp.length === 0) {
       return res.status(400).json({

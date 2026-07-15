@@ -86,7 +86,7 @@ app.use(
 
 app.use(hpp());
 
-app.use(mongoSanitize());
+//app.use(mongoSanitize());
 
 app.use("/api", apiLimiter);
 

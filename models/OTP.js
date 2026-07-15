@@ -40,20 +40,15 @@ async function sendVerificationEmail(email, otp) {
 }
 
 // --- Pre-save Hook ---
-otpSchema.pre("save", async function (next) {
-  try {
-    if (this.isNew) {
-      await sendVerificationEmail(this.email, this.otp);
-    }
-    next();
-  } catch (error) {
-    next(error);
+otpSchema.pre("save", async function () {
+  if (this.isNew) {
+    await sendVerificationEmail(this.email, this.otp);
   }
 });
 
 // Single-field indexes for the OTP Schema
 otpSchema.index({ email: 1 });
-otpSchema.index({ expiresAt: 1 }); // Great for TTL (Time-To-Live) index expiration tracking
+
 
 const OTP = mongoose.model("OTP", otpSchema);
 

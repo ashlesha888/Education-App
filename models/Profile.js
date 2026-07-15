@@ -80,11 +80,6 @@ profileSchema.virtual("age").get(function () {
   return age;
 });
 
-// --- Indexing Strategy ---
-
-// 1. Contact Number Lookup Index
-// Added unique & sparse constraints. This ensures that if a contact number is provided,
-// it must be unique across profiles, while still allowing other profiles to have a 'null' value.
 profileSchema.index({ contactNumber: 1 }, { unique: true, sparse: true });
 
 const Profile =

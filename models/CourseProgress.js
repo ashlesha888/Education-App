@@ -39,18 +39,8 @@ const courseProgressSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
-
-// --- Indexing Strategy ---
-
-// 1. Core Lookup & Uniqueness Constraint (CRITICAL FIX)
-// Ensures a user cannot have duplicate progress tracks for the same course.
-// Also covers standard queries like: "Get progress for user X in course Y".
-courseProgressSchema.index({ user: 1, courseId: 1 }, { unique: true });
-
-// 2. User Dashboard Query
-// Frequently used to fetch all courses a specific user is currently enrolled in.
-// Note: MongoDB can already reuse the prefix of index #1 for simple { user: 1 } lookups,
-// but adding a compound index with `isCompleted` is perfect for separating "In-Progress" vs "Completed" sections.
+ 
+courseProgressSchema.index({ user: 1, courseId: 1 }, { unique: true }); 
 courseProgressSchema.index({ user: 1, isCompleted: 1 });
 
 const CourseProgress =

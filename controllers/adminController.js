@@ -1,30 +1,7 @@
-import {
-    getAllUsers,
-    getUserById,
-    updateUser,
-    deleteUser,
-    suspendUser,
-    restoreUser,
-    getPendingCourses,
-    publishCourse,
-    unpublishCourse,
-    deleteCourse,
-    getAllReviews,
-    deleteReview,
-    reportReview,
-    getDashboardStatistics,
-    getTotalRevenue,
-    getTotalUsers,
-    getTotalCourses,
-    getTotalEnrollments,
-    getRecentRegistrations,
-    getRecentPayments,
-    getMonthlyGrowth,
-    getMostActiveStudents,
-    getTopInstructors,
-    getPlatformOverview,
-getTopRatedCourses, getHealthStatus, getDatabaseStatistics,
+import { getAllUsers, getUserById, updateUser, deleteUser, suspendUser, restoreUser, getPendingCourses, publishCourse, unpublishCourse, deleteCourse, getAllReviews, deleteReview, reportReview, getDashboardStatistics, getTotalRevenue, getTotalUsers, getTotalCourses, getTotalEnrollments, getRecentRegistrations, getRecentPayments, getMonthlyGrowth, getMostActiveStudents, getTopInstructors, getPlatformOverview, getTopRatedCourses,  getHealthStatus,  getDatabaseStatistics,
 } from "../utils/adminHelper.js";
+
+
 export const getAllUsersController =
 async (
   req,
