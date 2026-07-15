@@ -4,7 +4,7 @@ import {
   removeEnrollment,
   getEnrolledCourses,
   checkEnrollmentStatus,
-  getCourseStudents,
+  getCourseStudents,getEnrollmentCount,
 } from "../controllers/enrollmentController.js";
 
 import { auth } from "../middlewares/auth.js";

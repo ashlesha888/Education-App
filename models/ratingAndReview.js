@@ -42,9 +42,8 @@ const ratingAndReviewSchema = new mongoose.Schema(
 ratingAndReviewSchema.index({ course: 1 });
 ratingAndReviewSchema.index({ user: 1 });
 
-const RatingAndReview = mongoose.model(
-  "RatingAndReview",
-  ratingAndReviewSchema
-);
+const RatingAndReview =
+  mongoose.models.RatingAndReview ||
+  mongoose.model("RatingAndReview", ratingAndReviewSchema);
 
 export default RatingAndReview;

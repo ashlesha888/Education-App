@@ -34,6 +34,8 @@ const sectionSchema = new mongoose.Schema(
 // into this schema and index it like this:
 // sectionSchema.index({ courseId: 1 });
 
-const Section = mongoose.model("Section", sectionSchema);
+const Section =
+  mongoose.models.Section ||
+  mongoose.model("Section", sectionSchema);
 
 export default Section;

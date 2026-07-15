@@ -1,5 +1,8 @@
 import express from "express";
 import {
+  deleteLectureVideoController,
+} from "../controllers/studentDashboardControllers.js";
+import {
   createSection,
   updateSection,
   deleteSection,
@@ -13,7 +16,7 @@ import {
 import {
 uploadLectureVideoController,
 } from "../controllers/SectionController.js";
-
+import { FILE_FIELDS } from "../config/constants.js";
 import {
 uploadVideo,
 } from "../middlewares/uploadMiddleware.js";

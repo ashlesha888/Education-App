@@ -2,7 +2,7 @@ import express from "express";
 import { auth, isAdmin } from "../middlewares/auth.js";
 
 import {
-  getAllUsersController, deleteUserController, suspendUserController, restoreUserController, getUserByIdController, updateUserController, getAllCoursesController, getPendingCoursesController, publishCourseController, unpublishCourseController, deleteCourseController, getAllReviewsController, deleteReviewController, reportReviewController, getDashboardStatisticsController, getTotalRevenueController, getTotalUsersController, getTotalCoursesController, getTotalEnrollmentsController, getRecentRegistrationsController, getRecentPaymentsController, getMonthlyGrowthController, getMostActiveStudentsController, getTopInstructorsController, getPlatformOverviewController, healthCheckController, getDatabaseStatisticsController,  
+  getAllUsersController, deleteUserController, suspendUserController, restoreUserController, getUserByIdController, updateUserController, getAllCoursesController, getPendingCoursesController, publishCourseController, unpublishCourseController, deleteCourseController, getAllReviewsController, deleteReviewController, reportReviewController, getDashboardStatisticsController, getTotalRevenueController, getTotalUsersController, getTotalCoursesController, getTotalEnrollmentsController, getRecentRegistrationsController, getRecentPaymentsController, getMonthlyGrowthController, getMostActiveStudentsController, getTopInstructorsController, getTopRatedCoursesController,getPlatformOverviewController, healthCheckController, getDatabaseStatisticsController,  
 } from "../controllers/adminController.js";
 
 const router = express.Router();

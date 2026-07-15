@@ -87,6 +87,8 @@ profileSchema.virtual("age").get(function () {
 // it must be unique across profiles, while still allowing other profiles to have a 'null' value.
 profileSchema.index({ contactNumber: 1 }, { unique: true, sparse: true });
 
-const Profile = mongoose.model("Profile", profileSchema);
+const Profile =
+  mongoose.models.Profile ||
+  mongoose.model("Profile",profileSchema);
 
 export default Profile;

@@ -51,7 +51,7 @@ tagSchema.pre("validate", function (next) {
 // 1. Slug Lookup Index
 // Added explicitly for looking up a category/tag page by its URL slug.
 // e.g., Tag.findOne({ slug: req.params.slug })
-tagSchema.index({ slug: 1 });
+//tagSchema.index({ slug: 1 });
 
 const Tag = mongoose.model("Tag", tagSchema);
 

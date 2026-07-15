@@ -8,7 +8,7 @@ import {
   getTopRatedCourses,
   deleteReview,
   updateReview,
-  getStudentReview,
+  getStudentReview,getCourseRatingSummary,
 
   getRecentReviews,
   getRatingDistribution,
@@ -44,11 +44,7 @@ router.get(
 );
 
 // Can Student Review?
-router.get(
-  "/can-review/:courseId",
-  auth,
-  checkCanReview
-);
+
 
 // Recent Reviews
 router.get("/recent", getRecentReviews);

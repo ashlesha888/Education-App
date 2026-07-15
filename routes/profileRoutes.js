@@ -3,7 +3,7 @@ import {
   updateProfile,
   deleteAccount,
   getUserDetails, updateProfilePicture,getPublicInstructorProfile,
-  deleteProfileImageController
+  deleteProfileImageController,updateNotificationPreferencesController
 } from "../controllers/profileController.js";
 import { auth } from "../middlewares/auth.js";
 import {

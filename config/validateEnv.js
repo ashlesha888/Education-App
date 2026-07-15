@@ -1,7 +1,7 @@
 const requiredEnv = [
-  "MONGODB_URL",
+  "MONGO_URL",
   "JWT_SECRET",
-  "CLOUDINARY_CLOUD_NAME",
+  "CLOUDINARY_NAME",
   "CLOUDINARY_API_KEY",
   "CLOUDINARY_API_SECRET",
   "MAIL_HOST",
@@ -10,7 +10,8 @@ const requiredEnv = [
   "RAZORPAY_KEY_ID",
   "RAZORPAY_KEY_SECRET",
 ];
-
+//console.log("MONGO_URL:", process.env.MONGO_URL);
+//console.log("All env keys:", Object.keys(process.env));
 requiredEnv.forEach((key) => {
   if (!process.env[key]) {
     throw new Error(
