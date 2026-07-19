@@ -19,7 +19,7 @@ const profileSchema = new mongoose.Schema(
       default: null,
     },
     contactNumber: {
-  type: String,
+    type: String,
   trim: true,
   maxlength: 15,
   default: undefined,

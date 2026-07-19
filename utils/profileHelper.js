@@ -1,7 +1,9 @@
 import Profile from "../models/Profile.js";
+import User from "../models/User.js";
 import { replaceUploadedFile, deleteFromCloudinary } from "../config/cloudinary.js";
 import { formatUploadedFile, getFileMetadata } from "./fileFormatter.js";
 import { CLOUDINARY_FOLDERS, RESOURCE_TYPES } from "../config/constants.js";
+import { deleteUploadedFile } from "./cloudinaryHelper.js";
 
 export const findExistingProfile = async (profileId) => {
   const profile = await Profile.findById(profileId);
@@ -15,24 +17,61 @@ export const findExistingProfile = async (profileId) => {
   return profile;
 };
 
-export const uploadProfileImage = async (profileId, file) => {
-  const profile = await findExistingProfile(profileId);
+
+export const uploadProfileImage = async (userId, file) => {
+
+  const user = await User.findById(userId);
+  console.log("User ID received:", userId);
+  console.log("User Email:", user.email);
+  console.log("Profile ID:", user.additionalData);
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  const profile = await Profile.findById(user.additionalData);
+
+  if (!profile) {
+    throw new Error("Profile not found");
+  }
+
+  let oldPublicId = null;
+
+  if (
+    profile.profileImage &&
+    profile.profileImage.publicId
+  ) {
+    oldPublicId = profile.profileImage.publicId;
+  }
 
   const uploadResult = await replaceUploadedFile({
-    oldPublicId: profile.profileImage?.publicId,
+    oldPublicId,
     file,
     folder: CLOUDINARY_FOLDERS.PROFILE_IMAGES,
     resourceType: RESOURCE_TYPES.IMAGE,
   });
 
-  const formattedImage = formatUploadedFile(uploadResult);
+  // Update User
 
-  profile.profileImage = formattedImage;
+  user.profileImage = uploadResult.secure_url;
+
+  // Update Profile
+
+  profile.profileImage = {
+    url: uploadResult.secure_url,
+    publicId: uploadResult.public_id,
+    format: uploadResult.format,
+    size: uploadResult.bytes,
+  };
+
+  await user.save();
+  console.log("Before save:", profile.profileImage);
   await profile.save();
+  const checkProfile = await Profile.findById(profile._id);
 
+  console.log("After save:", checkProfile.profileImage);
   return {
+    user,
     profile,
-    profileImage: formattedImage,
   };
 };
 
@@ -44,33 +83,40 @@ export const getProfileImageMetadata = async (profileId) => {
 /**
  * Delete Profile Image
  */
-export const deleteProfileImage = async (profileId) => {
-  const profile = await findExistingProfile(profileId);
+import { v2 as cloudinary } from "cloudinary"; // Make sure cloudinary is imported at the top!
+import mongoose from "mongoose";
 
-  if (!profile.profileImage || !profile.profileImage.publicId) {
-    const error = new Error("Profile image not found.");
-    error.statusCode = 404;
-    throw error;
+
+export const deleteProfileImage = async (profileId) => {
+
+  const profile = await Profile.findById(profileId);
+
+  if (!profile) {
+    throw new Error("Profile not found");
   }
 
-  // Delete asset from Cloudinary
-  return await deleteUploadedFile({
-    model: profile,
-    field: "profileImage",
-    resourceType: RESOURCE_TYPES.IMAGE,
-  });
+  if (!profile.profileImage?.publicId) {
+    throw new Error("Profile image not found");
+  }
 
-  // Clear the field and save to DB
+  await cloudinary.uploader.destroy(profile.profileImage.publicId);
+
   profile.profileImage = null;
   await profile.save();
 
+  await User.findOneAndUpdate(
+    { additionalData: profileId },
+    {
+      profileImage: null
+    }
+  );
+
   return profile;
-};
+}
 /**
  * Update Notification Preferences
  */
-export const updateNotificationPreferences =
-async (
+export const updateNotificationPreferences = async (
   profileId,
   preferences
 ) => {

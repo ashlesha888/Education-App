@@ -12,11 +12,7 @@ export const buildCourseQuery = (
 ) => {
     const {
   search,
-  category,
-  tag,
   instructor,
-  language,
-  level,
   minPrice,
   maxPrice,
   minRating,
@@ -46,39 +42,15 @@ export const buildCourseQuery = (
         ];
     }
 
-    if (category) {
-        query.category = category;
-    }
-
-    if (tag) {
-        query.tags = {
-            $in: [tag],
-        };
-    }
+    
 
     if (instructor) {
         query.instructor =
             instructor;
     }
 
-    if (language) {
-        query.language =
-            language;
-    }
+    
 
-    if (level) {
-        query.level = level;
-    }
-
-    if (
-        published !==
-        undefined
-    ) {
-        query.status =
-            published === "true"
-                ? COURSE_STATUS.PUBLISHED
-                : COURSE_STATUS.DRAFT;
-    }
 
     if (
         minPrice ||
@@ -108,17 +80,15 @@ export const buildCourseQuery = (
   minDuration ||
   maxDuration
 ) {
-  courseQuery.totalDuration = {};
+ query.totalDuration = {};
 
-  if (minDuration) {
-    courseQuery.totalDuration.$gte =
-      Number(minDuration);
-  }
+if (minDuration) {
+  query.totalDuration.$gte = Number(minDuration);
+}
 
-  if (maxDuration) {
-    courseQuery.totalDuration.$lte =
-      Number(maxDuration);
-  }
+if (maxDuration) {
+  query.totalDuration.$lte = Number(maxDuration);
+}
 }
 
     return query;
@@ -230,14 +200,6 @@ export const searchCourses = async (
                 "instructor",
                 "firstName lastName profileImage"
             )
-            .populate(
-                "category",
-                "name"
-            )
-            .populate(
-                "tag",
-                "name"
-            )
             .sort(sort)
             .skip(
                 pagination.skip
@@ -296,15 +258,7 @@ validateDuration(
     validateRating(
         query.minRating
     );
-    validateObjectId(
-        query.category,
-        "Category"
-    );
-
-    validateObjectId(
-        query.tag,
-        "Tag"
-    );
+    
 
     validateObjectId(
         query.instructor,

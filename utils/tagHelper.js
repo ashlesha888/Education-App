@@ -499,14 +499,6 @@ export const getCoursesByTag = async (
                 select:
                     "firstName lastName profileImage",
             })
-            .populate({
-                path: "category",
-                select: "name",
-            })
-            .populate({
-                path: "tags",
-                select: "name",
-            })
             .sort({
                 averageRating:-1,
                 totalStudentsEnrolled:-1,

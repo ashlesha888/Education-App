@@ -2,6 +2,8 @@ import Course from "../models/course.js";
 import { formatUploadedFile, getFileMetadata } from "./fileFormatter.js";
 import { CLOUDINARY_FOLDERS, RESOURCE_TYPES } from "../config/constants.js";
 import { replaceUploadedFile, deleteFromCloudinary } from "../config/cloudinary.js";
+import NotFoundError from "./errors/NotFoundError.js";
+import { deleteUploadedFile } from "../utils/cloudinaryHelper.js";
 
 export const calculateCourseDuration = (courseContent) => {
   let totalSeconds = 0;
@@ -16,7 +18,10 @@ export const calculateCourseDuration = (courseContent) => {
 };
 
 export const findExistingCourse = async (courseId) => {
+  console.log("courseId:", courseId);
   const course = await Course.findById(courseId);
+  console.log(course);
+  
 
   if (!course) {
     throw new NotFoundError(
@@ -37,26 +42,41 @@ export const clearUploadedFile = (model, field) => {
   return model.save();
 };
 
-export const uploadCourseThumbnail = async (courseId, file) => {
-  const course = await findExistingCourse(courseId);
-
-  const uploadResult = await replaceUploadedFile({
-    oldPublicId: course.thumbnail?.publicId,
+export const uploadCourseThumbnail = async (
+    courseId,
     file,
-    folder: CLOUDINARY_FOLDERS.COURSE_THUMBNAILS,
-    resourceType: RESOURCE_TYPES.IMAGE,
-  });
+    userId
+) => {
 
-  const formattedFile = formatUploadedFile(uploadResult);
+    const course = await findExistingCourse(courseId);
 
-  course.thumbnail = formattedFile;
+    if (course.instructor.toString() !== userId) {
+        const error = new Error(
+            "You are not authorized to update this course."
+        );
 
-  await course.save();
+        error.statusCode = 403;
 
-  return {
-    course,
-    thumbnail: formattedFile,
-  };
+        throw error;
+    }
+
+    const uploadResult = await replaceUploadedFile({
+        oldPublicId: course.thumbnail?.publicId,
+        file,
+        folder: CLOUDINARY_FOLDERS.COURSE_THUMBNAILS,
+        resourceType: RESOURCE_TYPES.IMAGE,
+    });
+
+    const formattedFile = formatUploadedFile(uploadResult);
+
+    course.thumbnail = formattedFile;
+
+    await course.save();
+
+    return {
+        course,
+        thumbnail: formattedFile,
+    };
 };
 
 export const deleteCourseThumbnail = async (courseId, userId) => {
@@ -75,9 +95,9 @@ export const deleteCourseThumbnail = async (courseId, userId) => {
   }
 
   return await deleteUploadedFile({
-    model: course,
+    modelInstance: course,
     field: "thumbnail",
     resourceType: RESOURCE_TYPES.IMAGE,
-  });
+});
 };
 

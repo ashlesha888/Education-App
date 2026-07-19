@@ -50,7 +50,7 @@ const sendProductionError = (err, res) => {
   }
 
   // Log unknown programatic or 3rd party errors safely in production
-  logError(error);
+  logError(err);
 
   return res.status(500).json({
     success: false,
@@ -63,10 +63,11 @@ const sendProductionError = (err, res) => {
 
 const errorHandler = (err, req, res, next) => {
   // Create a mutable copy of the error object
-  let error = err;
-  error.message = err.message;
-  error.name = err.name;
-  error.code = err.code;
+let error = { ...err };
+
+error.message = err.message;
+error.statusCode = err.statusCode || 500;
+error.status = err.status || "error";
 
   // Fallback defaults
   error.statusCode = err.statusCode || 500;

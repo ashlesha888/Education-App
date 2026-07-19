@@ -1,29 +1,23 @@
 import mongoose from "mongoose";
 
-import { uploadToCloudinary } from "../utils/uploadToCloudinary.js";
 import Course from "../models/Course.js";
 import User from "../models/User.js";
-
 import Section from "../models/Section.js";
 import Subsection from "../models/Subsection.js";
 import RatingAndReview from "../models/RatingAndReview.js";
+import { logError, } from "../utils/logger.js";
+import NotFoundError  from "../utils/errors/NotFoundError.js";
+import { uploadToCloudinary } from "../config/cloudinary.js";
+import { uploadCourseThumbnail, deleteCourseThumbnail,} from "../utils/courseHelper.js";
+import { validateObjectId,} from "../utils/tagHelper.js";
+import { validateFile,} from "../utils/fileHelper.js";
+import { MIME_TYPES,} from "../config/constants.js";
+import { deleteUploadedFile } from "../utils/cloudinaryHelper.js";
+import { buildCourseQuery, buildSortQuery, buildPaginationQuery } from "../utils/searchHelper.js";
 import {
-  uploadCourseThumbnail,
-} from "../utils/courseHelper.js";
-import {
-  deleteCourseThumbnail,
-} from "../utils/courseHelper.js";
-import {
-  validateObjectId,
-} from "../utils/tagHelper.js";
-
-import {
-  validateFile,
-} from "../utils/fileHelper.js";
-
-import {
-  MIME_TYPES,
+    SEARCH_PAGINATION, SEARCH_SORT, COURSE_STATUS, ACCOUNT_TYPE,
 } from "../config/constants.js";
+
 export const createCourse = async (req, res) => {
   try {
     const {
@@ -31,17 +25,13 @@ export const createCourse = async (req, res) => {
       courseDescription,
       whatYouWillLearn,
       price,
-      thumbnail,
-      tag,
     } = req.body;
 
     if (
       !courseName ||
       !courseDescription ||
       !whatYouWillLearn ||
-      !price ||
-      !thumbnail ||
-      !tag
+      !price
     ) {
       return res.status(400).json({
         success: false,
@@ -57,8 +47,6 @@ export const createCourse = async (req, res) => {
       instructor: instructorId,
       whatYouWillLearn,
       price,
-      thumbnail,
-      tag,
     });
 
     await User.findByIdAndUpdate(
@@ -124,41 +112,6 @@ export const getAllCourses = async (req, res) => {
   }
 };
 
-
-export const updateCourseThumbnail = async (req, res) => {
-  try {
-    const { courseId } = req.body;
-
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: "Thumbnail image is required",
-      });
-    }
-
-    const uploadedImage = await uploadToCloudinary(
-      req.file.buffer,
-      "course_thumbnails"
-    );
-
-    const updatedCourse = await Course.findByIdAndUpdate(
-      courseId,
-      { thumbnail: uploadedImage.secure_url },
-      { new: true }
-    );
-
-    return res.status(200).json({
-      success: true,
-      message: "Course thumbnail updated successfully",
-      data: updatedCourse,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: "Thumbnail upload failed",
-    });
-  }
-};
 
 
 export const getCourseById = async (req, res) => {
@@ -238,7 +191,6 @@ export const updateCourse = async (req, res) => {
       courseDescription,
       whatYouWillLearn,
       price,
-      tag,
     } = req.body;
 
     if (!courseId) {
@@ -296,9 +248,7 @@ export const updateCourse = async (req, res) => {
       course.price = price;
     }
 
-    if (tag) {
-      course.tag = tag;
-    }
+    
 
     await course.save();
 
@@ -322,10 +272,7 @@ export const updateCourse = async (req, res) => {
           select: "firstName lastName profileImage",
         },
       })
-      .populate({
-        path: "tag",
-        select: "name description",
-      });
+      
 
     return res.status(200).json({
       success: true,
@@ -347,7 +294,7 @@ export const updateCourse = async (req, res) => {
 
 export const deleteCourse = async (req, res) => {
   try {
-    const { courseId } = req.body;
+    const { courseId } = req.params;
 
     // Validate Course ID
     if (!courseId) {
@@ -576,86 +523,61 @@ export const getCoursesByInstructor = async (req, res) => {
   }
 };
 
-export const searchCourses = async (
-  queryParams
-) => {
-  const courseQuery =
-    buildCourseQuery(
-      queryParams
-    );
+export const searchCourses = async (req, res) => {
+  try {
+    const queryParams = req.query;
 
-  if (
-  queryParams.published !==
-  undefined
-) {
-  courseQuery.status =
-    queryParams.published ===
-    "true"
-      ? COURSE_STATUS.PUBLISHED
-      : COURSE_STATUS.DRAFT;
-} else {
-  courseQuery.status =
-    COURSE_STATUS.PUBLISHED;
-}
+    const courseQuery = buildCourseQuery(queryParams);
 
-  const sort =
-    buildSortQuery(
-      queryParams.sort
-    );
+    if (queryParams.published !== undefined) {
+      courseQuery.status =
+        queryParams.published === "true"
+          ? COURSE_STATUS.PUBLISHED
+          : COURSE_STATUS.DRAFT;
+    } else {
+      courseQuery.status = COURSE_STATUS.PUBLISHED;
+    }
 
-  const pagination =
-    buildPaginationQuery(
+    const sort = buildSortQuery(queryParams.sort);
+
+    const pagination = buildPaginationQuery(
       queryParams.page,
       queryParams.limit
     );
 
-  const courses =
-    await Course.find(courseQuery)
+    const courses = await Course.find(courseQuery)
       .populate(
         "instructor",
         "firstName lastName profileImage"
       )
-      .populate(
-        "category",
-        "name"
-      )
-      .populate(
-        "tags",
-        "name"
-      )
       .sort(sort)
-      .skip(
-        pagination.skip
-      )
-      .limit(
-        pagination.limit
-      )
+      .skip(pagination.skip)
+      .limit(pagination.limit)
       .lean();
 
-  const totalCourses =
-    await Course.countDocuments(
-      courseQuery
-    );
+    const totalCourses = await Course.countDocuments(courseQuery);
 
-  return {
-    courses,
+    return res.status(200).json({
+      success: true,
+      data: {
+        courses,
+        pagination: {
+          page: pagination.page,
+          limit: pagination.limit,
+          totalCourses,
+          totalPages: Math.ceil(totalCourses / pagination.limit),
+        },
+      },
+    });
 
-    pagination: {
-      page:
-        pagination.page,
+  } catch (error) {
+    console.error(error);
 
-      limit:
-        pagination.limit,
-
-      totalCourses,
-
-      totalPages:
-        Math.ceil(
-          totalCourses /
-          pagination.limit
-        ),
-    },
-  };
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
 };
 
 export const filterCoursesByCategory = async (req, res) => {
@@ -706,115 +628,63 @@ export const filterCoursesByCategory = async (req, res) => {
 };
 
 export const uploadCourseThumbnailController = async (req, res) => {
-    try {
+  try {
+    const { courseId } = req.body;
 
-      const { courseId } =
-        req.body;
+    // Validate input
+    validateObjectId(courseId);
+    validateFile(req.file, MIME_TYPES.IMAGE);
 
-      validateObjectId(
-        courseId
-      );
+    // Delegate all business logic to the helper
+    const result = await uploadCourseThumbnail(
+      courseId,
+      req.file,
+      req.user.id
+    );
 
-      validateFile(
-        req.file,
-        MIME_TYPES.IMAGE
-      );
-if (
-  course.instructor.toString() !==
-  req.user.id
-) {
-  const error = new Error(
-    "You are not authorized to update this course."
-  );
+    return res.status(200).json({
+      success: true,
+      message: "thumbnail uploaded successfully",
+      data: result,
+    });
 
-  error.statusCode = 403;
+  } catch (error) {
+    logError(error);
 
-  throw error;
-}
-      const result =
-        await uploadCourseThumbnail(
-          courseId,
-          req.file
-        );
-
-      return res.status(200).json({
-        success: true,
-
-        message:
-          COURSE_MESSAGES.THUMBNAIL_UPLOADED,
-
-        data: result,
-      });
-
-    } catch (error) {
-
-      logError(error);
-
-      return res.status(
-        error.statusCode || 500
-      ).json({
-        success: false,
-
-        message:
-          error.message ||
-          "Internal Server Error",
-      });
-    }
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
+  }
 };
 
 /**
  * Delete Course Thumbnail
  */
-export const deleteCourseThumbnailController =
-  async (
-    req,
-    res
-  ) => {
+export const deleteCourseThumbnailController = async (req, res) => {
+  try {
+    const { courseId } = req.params;
 
-    try {
+    validateObjectId(courseId);
 
-      const {
-        courseId,
-      } = req.body;
+    const course = await deleteCourseThumbnail(
+      courseId,
+      req.user.id
+    );
 
-      validateObjectId(
-        courseId
-      );
+    return res.status(200).json({
+      success: true,
+      message: "Course thumbnail deleted successfully.",
+      data: course,
+    });
+  } catch (error) {
+    logError(error);
 
-      const course =
-        await deleteCourseThumbnail(
-          courseId
-        );
-
-      return res.status(200).json({
-
-        success: true,
-
-        message:
-          "Course thumbnail deleted successfully.",
-
-        data: course,
-
-      });
-
-    } catch (error) {
-
-      logError(error);
-
-      return res.status(
-        error.statusCode || 500
-      ).json({
-
-        success: false,
-
-        message:
-          error.message ||
-          "Internal Server Error",
-
-      });
-
-    }
-
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
+  }
 };
 
 

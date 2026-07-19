@@ -1,4 +1,4 @@
-import cloudinary from "../config/cloudinary.js";
+import {v2 as cloudinary} from "../config/cloudinary.js";
 import { compressImage } from "./imageHelper.js";
 import { RESOURCE_TYPES } from "../config/constants.js";
 
@@ -81,10 +81,9 @@ export const deleteFromCloudinary = async (
       resource_type: resourceType,
     });
   } catch (error) {
-    const deleteError = new Error("Cloudinary delete failed.");
-    deleteError.statusCode = 500;
-    throw deleteError;
-  }
+    console.error("Cloudinary Error:", error);
+    throw error;
+}
 };
 
 

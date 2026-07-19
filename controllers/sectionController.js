@@ -605,3 +605,47 @@ export const reorderSubsections = async (req, res) => {
 };
 
 
+export const deleteLectureVideoController =
+async (
+  req,
+  res,
+  next
+) => {
+
+  try {
+
+    const {
+      subSectionId,
+    } = req.params;
+
+    const subSection =
+      await deleteLectureVideo(
+        subSectionId
+      );
+
+    return res.status(200).json({
+
+      success: true,
+
+      message:
+        "Lecture video deleted successfully.",
+
+      data: {
+
+        subSectionId:
+          subSection._id,
+
+        video:
+          null,
+
+      },
+
+    });
+
+  } catch (error) {
+
+    next(error);
+
+  }
+
+};

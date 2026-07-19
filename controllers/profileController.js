@@ -1,5 +1,6 @@
 
-import { uploadToCloudinary } from "../utils/uploadToCloudinary.js";
+// Replace the duplicate import with the path to the correct, fixed version:
+import { uploadToCloudinary } from "../config/cloudinary.js";
 import Profile from "../models/Profile.js";
 import User from "../models/User.js";
 import {
@@ -147,12 +148,29 @@ export const updateProfilePicture = async (req, res) => {
       "profile_pictures"
     );
 
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      { profileImage: uploadResult.secure_url },
-      { new: true }
-    );
+    // 1. Update the User Document (returns additionalData reference)
+    // 1. Update the User Document (Keep this as a plain string string if your User model uses a string)
+const updatedUser = await User.findByIdAndUpdate(
+  userId,
+  { profileImage: uploadResult.secure_url },
+  { returnDocument: 'after' }
+);
 
+// FIX: 2. Structure the data as an object to match fileSchema rules for the Profile collection
+if (updatedUser && updatedUser.additionalData) {
+  await Profile.findByIdAndUpdate(
+    updatedUser.additionalData,
+    {
+      profileImage: {
+        url: uploadResult.secure_url,
+        publicId: uploadResult.public_id, // Grabs the Cloudinary asset identifier
+        format: uploadResult.format,
+        size: uploadResult.bytes,
+      },
+    },
+    { returnDocument: 'after' } // Eliminates the mongoose deprecation warning
+  );
+}
     return res.status(200).json({
       success: true,
       message: "Profile picture updated successfully",
@@ -207,63 +225,43 @@ export const getPublicInstructorProfile = async (req, res) => {
 /**
  * Upload Profile Image
  */
-export const uploadProfileImageController =
-  async (req, res) => {
-
-    try {
-
-      const {
-        profileId,
-      } = req.body;
-
-      validateObjectId(
-        profileId
-      );
-
-      validateFile(
-        req.file,
-        MIME_TYPES.IMAGE
-      );
-
-      const result =
-        await uploadProfileImage(
-
-          profileId,
-
-          req.file
-
-        );
-
-      return res.status(200).json({
-
-        success: true,
-
-        message:
-          "Profile image uploaded successfully.",
-
-        data: result,
-
+export const uploadProfileImageController = async (req, res) => {
+  try {
+    console.log("Token User ID:", req.user.id);
+    const userId = req.user?.id; 
+    
+    if (!userId) {
+      return res.status(401).json({ 
+        success: false, 
+        message: "Unauthorized access: Missing user credentials from token." 
       });
-
-    } catch (error) {
-
-      logError(error);
-
-      return res.status(
-        error.statusCode || 500
-      ).json({
-
-        success: false,
-
-        message:
-          error.message ||
-          "Internal Server Error",
-
-      });
-
     }
+console.log(req.file);
+    // 2. Validate the incoming upload file asset
+    validateFile(req.file, MIME_TYPES.IMAGE);
 
+    // 3. Look up the user to find their linked profile reference
+    const result =
+await uploadProfileImage(
+    userId,
+    req.file
+);
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile image uploaded successfully.",
+      data: result,
+    });
+  } catch (error) {
+    console.error("Upload Controller Error:", error);
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
+  }
 };
+
+
 
 import { deleteProfileImage } from "../utils/profileHelper.js";
 
@@ -274,27 +272,27 @@ export const deleteProfileImageController = async (req, res, next) => {
   try {
     const { profileId } = req.params;
 
-    // 1. Fetch/Delete handling via the helper logic
-    const profile = await deleteProfileImage(profileId);
+    const user = await User.findById(req.user.id);
 
-    // ⭐ Improvement 2: Authorization Check
-    // Ensures the acting user owns this profile before executing or confirming the change
-    if (profile.user.toString() !== req.user.id) {
-      return res.status(403).json({
+    if (!user) {
+      return res.status(404).json({
         success: false,
-        message: "Unauthorized: You do not own this profile.",
+        message: "User not found",
       });
     }
 
-    // ⭐ Improvement 1: Optimized Response Payload
-    // Keeps network traffic light by omitting heavy/unnecessary model properties
+    if (user.additionalData.toString() !== profileId) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not allowed to delete this profile image.",
+      });
+    }
+
+    await deleteProfileImage(profileId);
+
     return res.status(200).json({
       success: true,
       message: "Profile image deleted successfully.",
-      data: {
-        profileId: profile._id,
-        profileImage: null,
-      },
     });
 
   } catch (error) {
@@ -314,7 +312,7 @@ async (
     const preferences =
       await updateNotificationPreferences(
 
-        req.user.additionalDetails,
+        req.user.additionalData,
 
         req.body
 

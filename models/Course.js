@@ -64,11 +64,12 @@ const courseSchema = new mongoose.Schema(
     },
     thumbnail: {
       type: fileSchema,
-      required: true,
+      default:null,
     },
     tag: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Tag",
+      default:null,
     },
     studentsEnrolled: {
       type: [
@@ -95,7 +96,7 @@ const courseSchema = new mongoose.Schema(
 
 // Single-field indexes for the Course Schema
 courseSchema.index({ status: 1 });
-courseSchema.index({ category: 1 });
+
 courseSchema.index({ instructor: 1 });
 courseSchema.index({ averageRating: -1 }); // Indexing in descending order since we usually sort by highest rating
 // Compound index for instructor dashboards and filtering

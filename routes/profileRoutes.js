@@ -28,25 +28,16 @@ router.get("/user-details", auth, getUserDetails);
 
 import upload from "../config/multer.js";
 
-router.put(
+// Inside your routes file
+router.patch(
   "/update-profile-picture",
   auth,
-  upload.single("image"),
-  updateProfilePicture
+  upload.single(FILE_FIELDS.PROFILE_IMAGE),
+  uploadProfileImageController 
 );
-router.patch(
 
-  "/upload-profile-image",
 
-  auth,
 
-  uploadImage.single(
-    FILE_FIELDS.PROFILE_IMAGE
-  ),
-
-  uploadProfileImageController
-
-);
 router.post("/public-instructor", getPublicInstructorProfile);
 router.delete(
 

@@ -1,4 +1,5 @@
-import { v2 as cloudinary } from "cloudinary";
+import cloudinary from "cloudinary";
+const v2 = cloudinary.v2;
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -10,16 +11,15 @@ if (
 ) {
   throw new Error("Cloudinary environment variables are missing.");
 }
-
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+v2.config({
+  cloud_name: process.env.CLOUDINARY_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 export const uploadToCloudinary = async (fileBuffer, folder) => {
   return new Promise((resolve, reject) => {
-    const uploadStream = cloudinary.uploader.upload_stream(
+    const uploadStream = v2.uploader.upload_stream(
       {
         folder,
         resource_type: "auto",
@@ -37,27 +37,25 @@ export const uploadToCloudinary = async (fileBuffer, folder) => {
 // FIXED: Added resourceType option to accept variations (image, video, raw)
 export const deleteFromCloudinary = async (publicId, resourceType = "image") => {
   if (!publicId) return null;
-  return await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
+  return await v2.uploader.destroy(publicId, { resource_type: resourceType });
 };
 
 // FIXED: Internal call to deleteFromCloudinary now forwards the proper resourceType
-export const replaceUploadedFile = async (
+export const replaceUploadedFile = async ({
   oldPublicId,
-  newFile,
+  file,
   folder,
-  resourceType = "auto"
-) => {
-  // Delete old file (if exists)
+  resourceType = "auto",
+}) => {
+
   if (oldPublicId) {
-    // If resourceType is auto, deletion needs a concrete type (defaults to image)
-    const deletionType = resourceType === "auto" ? "image" : resourceType;
+    const deletionType =
+      resourceType === "auto" ? "image" : resourceType;
+
     await deleteFromCloudinary(oldPublicId, deletionType);
   }
 
-  // Upload new file
-  const uploadResult = await uploadToCloudinary(newFile, folder);
-
-  return uploadResult;
+  return await uploadToCloudinary(file.buffer, folder);
 };
 
 export const generateThumbnailUrl = (imageUrl, width = 300, height = 300) => {
@@ -74,5 +72,5 @@ const cloudinaryService = {
   replace: replaceUploadedFile,
   thumbnail: generateThumbnailUrl,
 };
-
+export {v2};
 export default Object.freeze(cloudinaryService);

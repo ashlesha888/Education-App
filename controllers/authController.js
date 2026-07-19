@@ -1,15 +1,12 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import otpGenerator from "otp-generator";
-import {
-  sendWelcomeEmail,
-} from "../utils/emailHelper.js";
+import { sendWelcomeEmail } from "../utils/emailHelper.js";
 import User from "../models/User.js";
 import Profile from "../models/Profile.js";
 import OTP from "../models/OTP.js";
-import {
-  sendPasswordResetEmail,
-} from "../utils/emailHelper.js";
+import { sendPasswordResetEmail } from "../utils/emailHelper.js";
+
 export const sendOTP = async (req, res) => {
   try {
     const { email } = req.body;
@@ -105,18 +102,20 @@ export const signUp = async (req, res) => {
 
     const recentOtp = await OTP.findOne({ email }).sort({ createdAt: -1 });
 
-console.log("EMAIL RECEIVED:", email);
-console.log("FOUND OTP:", recentOtp);
-console.log("Entered OTP:", otp);
-console.log("Stored OTP:", recentOtp?.otp);
+    console.log("EMAIL RECEIVED:", email);
+    console.log("FOUND OTP:", recentOtp);
+    console.log("Entered OTP:", otp);
+    console.log("Stored OTP:", recentOtp?.otp);
 
-if (!recentOtp || recentOtp.otp !== otp) {
-  return res.status(400).json({
-    success: false,
-    message: "Invalid or expired OTP",
-  });
-}
-await OTP.deleteOne({ _id: recentOtp._id });
+    if (!recentOtp || recentOtp.otp !== otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired OTP",
+      });
+    }
+    
+    await OTP.deleteOne({ _id: recentOtp._id });
+    
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const profile = await Profile.create({
@@ -137,11 +136,15 @@ await OTP.deleteOne({ _id: recentOtp._id });
         `${firstName} ${lastName}`
       )}`,
     });
-try {
-  await sendWelcomeEmail(user);
-} catch (error) {
-  console.error("Welcome email failed:", error.message);
-}
+    
+    user.password = undefined;
+    
+    try {
+      await sendWelcomeEmail(user);
+    } catch (error) {
+      console.error("Welcome email failed:", error.message);
+    }
+    
     return res.status(201).json({
       success: true,
       user,
@@ -231,11 +234,11 @@ export const login = async (req, res) => {
 export const logout = async (req, res) => {
   try {
     const options = {
-
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
     };
+    
     return res
       .clearCookie("token", options)
       .status(200)
@@ -243,8 +246,6 @@ export const logout = async (req, res) => {
         success: true,
         message: "Logged out successfully",
       });
-
-
   } catch (error) {
     console.error(error);
 
@@ -283,7 +284,6 @@ export const forgotPassword = async (req, res) => {
         upperCaseAlphabets: false,
         lowerCaseAlphabets: false,
         specialChars: false,
-
       });
 
       result = await OTP.findOne({ otp: generatedOtp });
@@ -296,7 +296,6 @@ export const forgotPassword = async (req, res) => {
       success: true,
       message: "OTP sent successfully",
     });
-
   } catch (error) {
     console.error(error);
 
@@ -332,24 +331,23 @@ export const resetPassword = async (req, res) => {
       });
     }
     const recentOtp = await OTP.findOne({ email }).sort({
-  createdAt: -1,
-});
+      createdAt: -1,
+    });
 
-console.log(recentOtp);
-
-    if (recentOtp.length === 0) {
+    if (!recentOtp) {
       return res.status(400).json({
         success: false,
         message: "OTP has expired or does not exist",
       });
     }
 
-    if (otp.trim() !== recentOtp[0].otp) {
+    if (otp.trim() !== recentOtp.otp) {
       return res.status(400).json({
         success: false,
         message: "Invalid OTP",
       });
     }
+    
     const hashedPassword = await bcrypt.hash(password, 10);
 
     await User.findOneAndUpdate(
@@ -357,24 +355,17 @@ console.log(recentOtp);
       { password: hashedPassword },
       { new: true }
     );
-const updatedUser =
-await User.findOne({
-  email,
-});
-try {
-
-  await sendPasswordResetEmail(
-    updatedUser
-  );
-
-} catch (error) {
-
-  console.error(
-    "Password reset email failed:",
-    error.message
-  );
-
-}
+    
+    const updatedUser = await User.findOne({
+      email,
+    });
+    
+    try {
+      await sendPasswordResetEmail(updatedUser);
+    } catch (error) {
+      console.error("Password reset email failed:", error.message);
+    }
+    
     await OTP.deleteMany({ email });
 
     return res.status(200).json({
@@ -390,8 +381,6 @@ try {
     });
   }
 };
-
-
 
 export const changePassword = async (req, res) => {
   try {
@@ -424,7 +413,7 @@ export const changePassword = async (req, res) => {
 
     const userId = req.user.id;
 
-    const user = await User.findById(userId);
+    const user = await User.findById(req.user.id).select("+password");
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -459,5 +448,3 @@ export const changePassword = async (req, res) => {
     });
   }
 };
-
-
